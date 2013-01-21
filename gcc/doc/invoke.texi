@@ -797,7 +797,7 @@ See RS/6000 and PowerPC Options.
 -mcmodel=@var{code-model} @gol
 -mpower  -mno-power  -mpower2  -mno-power2 @gol
 -mpowerpc  -mpowerpc64  -mno-powerpc @gol
--maltivec  -mno-altivec @gol
+-maltivec  -mno-altivec -maltivec2 -mno-altivec2 @gol
 -mpowerpc-gpopt  -mno-powerpc-gpopt @gol
 -mpowerpc-gfxopt  -mno-powerpc-gfxopt @gol
 -mmfcrf  -mno-mfcrf  -mpopcntb  -mno-popcntb -mpopcntd -mno-popcntd @gol
@@ -16514,16 +16514,21 @@ architecture.
 The @option{-mpopcntb} option allows GCC to generate the popcount and
 double-precision FP reciprocal estimate instruction implemented on the
 POWER5 processor and other processors that support the PowerPC V2.02
-architecture.
-The @option{-mpopcntd} option allows GCC to generate the popcount
-instruction implemented on the POWER7 processor and other processors
-that support the PowerPC V2.06 architecture.
+architecture. On the e5500 and e6500 processors, only the popcount
+instruction is generated.
+The @option{-mpopcntd} option allows GCC to generate the popcount and
+double word to FP conversion instructions implemented on the POWER7
+processor and other processors that support the PowerPC V2.06
+architecture. On the e5500 and e6500 processors, only the popcount
+instruction is generated.
 The @option{-mfprnd} option allows GCC to generate the FP round to
 integer instructions implemented on the POWER5+ processor and other
 processors that support the PowerPC V2.03 architecture.
 The @option{-mcmpb} option allows GCC to generate the compare bytes
-instruction implemented on the POWER6 processor and other processors
-that support the PowerPC V2.05 architecture.
+and copy sign instructions implemented on the POWER6 processor and
+other processors that support the PowerPC V2.05 architecture. On the
+e5500 and e6500 processors, only the compare bytes instruction is
+generated.
 The @option{-mmfpgpr} option allows GCC to generate the FP move to/from
 general-purpose register instructions implemented on the POWER6X
 processor and other processors that support the extended PowerPC V2.05
@@ -16570,11 +16575,13 @@ Supported values for @var{cpu_type} are @samp{401}, @samp{403},
 @samp{603e}, @samp{604}, @samp{604e}, @samp{620}, @samp{630}, @samp{740},
 @samp{7400}, @samp{7450}, @samp{750}, @samp{801}, @samp{821}, @samp{823},
 @samp{860}, @samp{970}, @samp{8540}, @samp{a2}, @samp{e300c2},
-@samp{e300c3}, @samp{e500mc}, @samp{e500mc64}, @samp{ec603e}, @samp{G3},
-@samp{G4}, @samp{G5}, @samp{titan}, @samp{power}, @samp{power2}, @samp{power3},
-@samp{power4}, @samp{power5}, @samp{power5+}, @samp{power6}, @samp{power6x},
-@samp{power7}, @samp{common}, @samp{powerpc}, @samp{powerpc64}, @samp{rios},
-@samp{rios1}, @samp{rios2}, @samp{rsc}, and @samp{rs64}.
+@samp{e300c3}, @samp{e500mc}, @samp{e500mc64}, @samp{e5500},
+@samp{e6500}, @samp{ec603e}, @samp{G3}, @samp{G4}, @samp{G5},
+@samp{titan}, @samp{power}, @samp{power2}, @samp{power3},
+@samp{power4}, @samp{power5}, @samp{power5+}, @samp{power6},
+@samp{power6x}, @samp{power7}, @samp{common}, @samp{powerpc},
+@samp{powerpc64}, @samp{rios}, @samp{rios1}, @samp{rios2}, @samp{rsc},
+and @samp{rs64}.
 
 @option{-mcpu=common} selects a completely generic processor.  Code
 generated under this option will run on any POWER or PowerPC processor.
@@ -16595,10 +16602,11 @@ others.
 The @option{-mcpu} options automatically enable or disable the
 following options:
 
-@gccoptlist{-maltivec  -mfprnd  -mhard-float  -mmfcrf  -mmultiple @gol
--mnew-mnemonics  -mpopcntb -mpopcntd  -mpower  -mpower2  -mpowerpc64 @gol
--mpowerpc-gpopt  -mpowerpc-gfxopt  -msingle-float -mdouble-float @gol
--msimple-fpu -mstring  -mmulhw  -mdlmzb  -mmfpgpr -mvsx}
+@gccoptlist{-maltivec -maltivec2 -mfprnd -mhard-float -mmfcrf
+-mmultiple @gol -mnew-mnemonics -mpopcntb -mpopcntd -mpower -mpower2
+-mpowerpc64 @gol -mpowerpc-gpopt -mpowerpc-gfxopt -msingle-float
+-mdouble-float @gol -msimple-fpu -mstring -mmulhw -mdlmzb -mmfpgpr
+-mvsx}
 
 The particular options set for any particular CPU will vary between
 compiler versions, depending on what setting seems to produce optimal
@@ -16646,6 +16654,16 @@ space.
 Generate code that uses (does not use) AltiVec instructions, and also
 enable the use of built-in functions that allow more direct access to
 the AltiVec instruction set.  You may also need to set
+@option{-mabi=altivec} to adjust the current ABI with AltiVec ABI
+enhancements.
+
+@item -maltivec2
+@itemx -mno-altivec2
+@opindex maltivec2
+@opindex mno-altivec2
+Generate code that uses (does not use) AltiVec2 instructions, and also
+enable the use of built-in functions that allow more direct access to
+the AltiVec2 instruction set.  You may also need to set
 @option{-mabi=altivec} to adjust the current ABI with AltiVec ABI
 enhancements.
 

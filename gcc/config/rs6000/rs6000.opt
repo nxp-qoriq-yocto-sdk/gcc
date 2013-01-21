@@ -147,6 +147,10 @@ maltivec
 Target Report Mask(ALTIVEC) Save
 Use AltiVec instructions
 
+maltivec2
+Target Report Mask(ALTIVEC2) Save
+Use AltiVec PowerPC V2.07 instructions
+
 mhard-dfp
 Target Report Mask(DFP) Save
 Use decimal floating point instructions

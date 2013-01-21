@@ -168,6 +168,8 @@
 %{mcpu=e300c3: -me300} \
 %{mcpu=e500mc: -me500mc} \
 %{mcpu=e500mc64: -me500mc64} \
+%{mcpu=e5500: -me5500} \
+%{mcpu=e6500: -me6500} \
 %{maltivec: -maltivec} \
 %{mvsx: -mvsx %{!maltivec: -maltivec} %{!mcpu*: %(asm_cpu_power7)}} \
 -many"
@@ -476,13 +478,15 @@ extern int rs6000_vector_align[];
 
 #define TARGET_FCTIDZ	TARGET_FCFID
 #define TARGET_STFIWX	TARGET_PPC_GFXOPT
-#define TARGET_LFIWAX	TARGET_CMPB
-#define TARGET_LFIWZX	TARGET_POPCNTD
-#define TARGET_FCFIDS	TARGET_POPCNTD
-#define TARGET_FCFIDU	TARGET_POPCNTD
-#define TARGET_FCFIDUS	TARGET_POPCNTD
-#define TARGET_FCTIDUZ	TARGET_POPCNTD
-#define TARGET_FCTIWUZ	TARGET_POPCNTD
+#define TARGET_LFIWAX	(TARGET_CMPB && rs6000_cpu != PROCESSOR_PPCE5500 \
+			 && rs6000_cpu != PROCESSOR_PPCE6500)
+#define TARGET_LFIWZX	(TARGET_POPCNTD && rs6000_cpu != PROCESSOR_PPCE5500 \
+			 && rs6000_cpu != PROCESSOR_PPCE6500)
+#define TARGET_FCFIDS	TARGET_LFIWZX
+#define TARGET_FCFIDU	TARGET_LFIWZX
+#define TARGET_FCFIDUS	TARGET_LFIWZX
+#define TARGET_FCTIDUZ	TARGET_LFIWZX
+#define TARGET_FCTIWUZ	TARGET_LFIWZX
 
 /* For power systems, we want to enable Altivec and VSX builtins even if the
    user did not use -maltivec or -mvsx to allow the builtins to be used inside
@@ -511,10 +515,14 @@ extern int rs6000_vector_align[];
 
 #define TARGET_FRE	(TARGET_HARD_FLOAT && TARGET_FPRS \
 			 && TARGET_DOUBLE_FLOAT \
-			 && (TARGET_POPCNTB || VECTOR_UNIT_VSX_P (DFmode)))
+			 && (TARGET_POPCNTB || VECTOR_UNIT_VSX_P (DFmode)) \
+			 && rs6000_cpu != PROCESSOR_PPCE5500 \
+			 && rs6000_cpu != PROCESSOR_PPCE6500)
 
 #define TARGET_FRSQRTES	(TARGET_HARD_FLOAT && TARGET_POPCNTB \
-			 && TARGET_FPRS && TARGET_SINGLE_FLOAT)
+			 && TARGET_FPRS && TARGET_SINGLE_FLOAT \
+			 && rs6000_cpu != PROCESSOR_PPCE5500 \
+			 && rs6000_cpu != PROCESSOR_PPCE6500)
 
 #define TARGET_FRSQRTE	(TARGET_HARD_FLOAT && TARGET_FPRS \
 			 && TARGET_DOUBLE_FLOAT \
@@ -2327,6 +2335,7 @@ extern int frame_pointer_needed;
    target flags, and pick two random bits for SPE and paired which aren't in
    target_flags.  */
 #define RS6000_BTM_ALTIVEC	MASK_ALTIVEC	/* VMX/altivec vectors.  */
+#define RS6000_BTM_ALTIVEC2	MASK_ALTIVEC2	/* ISA 2.07 altivec vectors.  */
 #define RS6000_BTM_VSX		MASK_VSX	/* VSX (vector/scalar).  */
 #define RS6000_BTM_SPE		MASK_STRING	/* E500 */
 #define RS6000_BTM_PAIRED	MASK_MULHW	/* 750CL paired insns.  */
@@ -2339,6 +2348,7 @@ extern int frame_pointer_needed;
 #define RS6000_BTM_CELL		MASK_FPRND	/* Target is cell powerpc.  */
 
 #define RS6000_BTM_COMMON	(RS6000_BTM_ALTIVEC			\
+				 | RS6000_BTM_ALTIVEC2			\
 				 | RS6000_BTM_VSX			\
 				 | RS6000_BTM_FRE			\
 				 | RS6000_BTM_FRES			\

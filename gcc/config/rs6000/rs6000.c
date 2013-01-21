@@ -755,6 +755,44 @@ struct processor_costs ppce500mc64_cost = {
   1,			/* prefetch streams /*/
 };
 
+/* Instruction costs on PPCE5500 processors.  */
+static const
+struct processor_costs ppce5500_cost = {
+  COSTS_N_INSNS (5),    /* mulsi */
+  COSTS_N_INSNS (5),    /* mulsi_const */
+  COSTS_N_INSNS (4),    /* mulsi_const9 */
+  COSTS_N_INSNS (5),    /* muldi */
+  COSTS_N_INSNS (14),   /* divsi */
+  COSTS_N_INSNS (14),   /* divdi */
+  COSTS_N_INSNS (7),    /* fp */
+  COSTS_N_INSNS (10),   /* dmul */
+  COSTS_N_INSNS (36),   /* sdiv */
+  COSTS_N_INSNS (66),   /* ddiv */
+  64,			/* cache line size */
+  32,			/* l1 cache */
+  128,			/* l2 cache */
+  1,			/* prefetch streams /*/
+};
+
+/* Instruction costs on PPCE6500 processors.  */
+static const
+struct processor_costs ppce6500_cost = {
+  COSTS_N_INSNS (5),    /* mulsi */
+  COSTS_N_INSNS (5),    /* mulsi_const */
+  COSTS_N_INSNS (4),    /* mulsi_const9 */
+  COSTS_N_INSNS (5),    /* muldi */
+  COSTS_N_INSNS (14),   /* divsi */
+  COSTS_N_INSNS (14),   /* divdi */
+  COSTS_N_INSNS (7),    /* fp */
+  COSTS_N_INSNS (10),   /* dmul */
+  COSTS_N_INSNS (36),   /* sdiv */
+  COSTS_N_INSNS (66),   /* ddiv */
+  64,			/* cache line size */
+  32,			/* l1 cache */
+  128,			/* l2 cache */
+  1,			/* prefetch streams /*/
+};
+
 /* Instruction costs on AppliedMicro Titan processors.  */
 static const
 struct processor_costs titan_cost = {
@@ -1693,7 +1731,7 @@ enum {
 		   | MASK_MFCRF | MASK_POPCNTB | MASK_FPRND | MASK_MULHW
 		   | MASK_DLMZB | MASK_CMPB | MASK_MFPGPR | MASK_DFP
 		   | MASK_POPCNTD | MASK_VSX | MASK_ISEL | MASK_NO_UPDATE
-		   | MASK_RECIP_PRECISION)
+		   | MASK_RECIP_PRECISION | MASK_ALTIVEC2)
 };
 
 /* Masks for instructions set at various powerpc ISAs.  */
@@ -2576,6 +2614,7 @@ unsigned
 rs6000_builtin_mask_calculate (void)
 {
   return (((TARGET_ALTIVEC)		    ? RS6000_BTM_ALTIVEC  : 0)
+	  | ((TARGET_ALTIVEC2)		    ? RS6000_BTM_ALTIVEC2 : 0)
 	  | ((TARGET_VSX)		    ? RS6000_BTM_VSX	  : 0)
 	  | ((TARGET_SPE)		    ? RS6000_BTM_SPE	  : 0)
 	  | ((TARGET_PAIRED_FLOAT)	    ? RS6000_BTM_PAIRED	  : 0)
@@ -2703,10 +2742,16 @@ rs6000_option_override_internal (bool global_init_p)
   rs6000_cpu = processor_target_table[tune_index].processor;
 
   if (rs6000_cpu == PROCESSOR_PPCE300C2 || rs6000_cpu == PROCESSOR_PPCE300C3
-      || rs6000_cpu == PROCESSOR_PPCE500MC || rs6000_cpu == PROCESSOR_PPCE500MC64)
+      || rs6000_cpu == PROCESSOR_PPCE500MC || rs6000_cpu == PROCESSOR_PPCE500MC64
+      || rs6000_cpu == PROCESSOR_PPCE5500)
     {
       if (TARGET_ALTIVEC)
 	error ("AltiVec not supported in this target");
+      if (TARGET_SPE)
+	error ("SPE not supported in this target");
+    }
+  if (rs6000_cpu == PROCESSOR_PPCE6500)
+    {
       if (TARGET_SPE)
 	error ("SPE not supported in this target");
     }
@@ -2804,8 +2849,19 @@ rs6000_option_override_internal (bool global_init_p)
      user's opinion, though.  */
   if (rs6000_block_move_inline_limit == 0
       && (rs6000_cpu == PROCESSOR_PPCE500MC
-	  || rs6000_cpu == PROCESSOR_PPCE500MC64))
+	  || rs6000_cpu == PROCESSOR_PPCE500MC64
+	  || rs6000_cpu == PROCESSOR_PPCE5500
+	  || rs6000_cpu == PROCESSOR_PPCE6500))
     rs6000_block_move_inline_limit = 128;
+
+  /* Those machines does not have fsqrt instruction */
+  if (rs6000_cpu == PROCESSOR_PPCE5500
+      || rs6000_cpu == PROCESSOR_PPCE6500)
+    target_flags &= ~(MASK_PPC_GPOPT);
+
+  /* Those machines implements a slow mfocr opcode */
+  if (rs6000_cpu == PROCESSOR_PPCE5500)
+    target_flags &= ~MASK_MFCRF;
 
   /* store_one_arg depends on expand_block_move to handle at least the
      size of reg_parm_stack_space.  */
@@ -2938,7 +2994,9 @@ rs6000_option_override_internal (bool global_init_p)
 #endif
 
   if (TARGET_E500 || rs6000_cpu == PROCESSOR_PPCE500MC
-      || rs6000_cpu == PROCESSOR_PPCE500MC64)
+      || rs6000_cpu == PROCESSOR_PPCE500MC64
+      || rs6000_cpu == PROCESSOR_PPCE5500
+      || rs6000_cpu == PROCESSOR_PPCE6500)
     {
       /* The e500 and e500mc do not have string instructions, and we set
 	 MASK_STRING above when optimizing for size.  */
@@ -2986,7 +3044,9 @@ rs6000_option_override_internal (bool global_init_p)
 				 || rs6000_cpu == PROCESSOR_POWER6
 				 || rs6000_cpu == PROCESSOR_POWER7
 				 || rs6000_cpu == PROCESSOR_PPCE500MC
-				 || rs6000_cpu == PROCESSOR_PPCE500MC64);
+				 || rs6000_cpu == PROCESSOR_PPCE500MC64
+				 || rs6000_cpu == PROCESSOR_PPCE5500
+				 || rs6000_cpu == PROCESSOR_PPCE6500);
 
   /* Allow debug switches to override the above settings.  These are set to -1
      in rs6000.opt to indicate the user hasn't directly set the switch.  */
@@ -3206,6 +3266,14 @@ rs6000_option_override_internal (bool global_init_p)
 
       case PROCESSOR_PPCE500MC64:
 	rs6000_cost = &ppce500mc64_cost;
+	break;
+
+      case PROCESSOR_PPCE5500:
+	rs6000_cost = &ppce5500_cost;
+	break;
+
+      case PROCESSOR_PPCE6500:
+	rs6000_cost = &ppce6500_cost;
 	break;
 
       case PROCESSOR_TITAN:
@@ -10663,6 +10731,12 @@ altivec_expand_builtin (tree exp, rtx target, bool *expandedp)
       return altivec_expand_stv_builtin (CODE_FOR_altivec_stvehx, exp);
     case ALTIVEC_BUILTIN_STVEWX:
       return altivec_expand_stv_builtin (CODE_FOR_altivec_stvewx, exp);
+    case ALTIVEC_BUILTIN_STVEXBX:
+      return altivec_expand_stv_builtin (CODE_FOR_altivec_stvexbx, exp);
+    case ALTIVEC_BUILTIN_STVEXHX:
+      return altivec_expand_stv_builtin (CODE_FOR_altivec_stvexhx, exp);
+    case ALTIVEC_BUILTIN_STVEXWX:
+      return altivec_expand_stv_builtin (CODE_FOR_altivec_stvexwx, exp);
     case ALTIVEC_BUILTIN_STVXL:
       return altivec_expand_stv_builtin (CODE_FOR_altivec_stvxl, exp);
 
@@ -10674,6 +10748,18 @@ altivec_expand_builtin (tree exp, rtx target, bool *expandedp)
       return altivec_expand_stv_builtin (CODE_FOR_altivec_stvrx, exp);
     case ALTIVEC_BUILTIN_STVRXL:
       return altivec_expand_stv_builtin (CODE_FOR_altivec_stvrxl, exp);
+    case ALTIVEC_BUILTIN_STVFLX:
+      return altivec_expand_stv_builtin (CODE_FOR_altivec_stvflx, exp);
+    case ALTIVEC_BUILTIN_STVFLXL:
+      return altivec_expand_stv_builtin (CODE_FOR_altivec_stvflxl, exp);
+    case ALTIVEC_BUILTIN_STVFRX:
+      return altivec_expand_stv_builtin (CODE_FOR_altivec_stvfrx, exp);
+    case ALTIVEC_BUILTIN_STVFRXL:
+      return altivec_expand_stv_builtin (CODE_FOR_altivec_stvfrxl, exp);
+    case ALTIVEC_BUILTIN_STVSWX:
+      return altivec_expand_stv_builtin (CODE_FOR_altivec_stvswx, exp);
+    case ALTIVEC_BUILTIN_STVSWXL:
+      return altivec_expand_stv_builtin (CODE_FOR_altivec_stvswxl, exp);
 
     case VSX_BUILTIN_STXVD2X_V2DF:
       return altivec_expand_stv_builtin (CODE_FOR_vsx_store_v2df, exp);
@@ -10808,6 +10894,15 @@ altivec_expand_builtin (tree exp, rtx target, bool *expandedp)
     case ALTIVEC_BUILTIN_LVEWX:
       return altivec_expand_lv_builtin (CODE_FOR_altivec_lvewx,
 					exp, target, false);
+    case ALTIVEC_BUILTIN_LVEXBX:
+      return altivec_expand_lv_builtin (CODE_FOR_altivec_lvexbx,
+					exp, target, false);
+    case ALTIVEC_BUILTIN_LVEXHX:
+      return altivec_expand_lv_builtin (CODE_FOR_altivec_lvexhx,
+					exp, target, false);
+    case ALTIVEC_BUILTIN_LVEXWX:
+      return altivec_expand_lv_builtin (CODE_FOR_altivec_lvexwx,
+					exp, target, false);
     case ALTIVEC_BUILTIN_LVXL:
       return altivec_expand_lv_builtin (CODE_FOR_altivec_lvxl,
 					exp, target, false);
@@ -10825,6 +10920,27 @@ altivec_expand_builtin (tree exp, rtx target, bool *expandedp)
 					exp, target, true);
     case ALTIVEC_BUILTIN_LVRXL:
       return altivec_expand_lv_builtin (CODE_FOR_altivec_lvrxl,
+					exp, target, true);
+    case ALTIVEC_BUILTIN_LVTLX:
+      return altivec_expand_lv_builtin (CODE_FOR_altivec_lvtlx,
+					exp, target, true);
+    case ALTIVEC_BUILTIN_LVTLXL:
+      return altivec_expand_lv_builtin (CODE_FOR_altivec_lvtlxl,
+					exp, target, true);
+    case ALTIVEC_BUILTIN_LVTRX:
+      return altivec_expand_lv_builtin (CODE_FOR_altivec_lvtrx,
+					exp, target, true);
+    case ALTIVEC_BUILTIN_LVTRXL:
+      return altivec_expand_lv_builtin (CODE_FOR_altivec_lvtrxl,
+					exp, target, true);
+    case ALTIVEC_BUILTIN_LVSWX:
+      return altivec_expand_lv_builtin (CODE_FOR_altivec_lvswx,
+					exp, target, true);
+    case ALTIVEC_BUILTIN_LVSWXL:
+      return altivec_expand_lv_builtin (CODE_FOR_altivec_lvswxl,
+					exp, target, true);
+    case ALTIVEC_BUILTIN_LVSM:
+      return altivec_expand_lv_builtin (CODE_FOR_altivec_lvsm,
 					exp, target, true);
     case VSX_BUILTIN_LXVD2X_V2DF:
       return altivec_expand_lv_builtin (CODE_FOR_vsx_load_v2df,
@@ -12145,6 +12261,9 @@ altivec_init_builtins (void)
   def_builtin ("__builtin_altivec_lvebx", v16qi_ftype_long_pcvoid, ALTIVEC_BUILTIN_LVEBX);
   def_builtin ("__builtin_altivec_lvehx", v8hi_ftype_long_pcvoid, ALTIVEC_BUILTIN_LVEHX);
   def_builtin ("__builtin_altivec_lvewx", v4si_ftype_long_pcvoid, ALTIVEC_BUILTIN_LVEWX);
+  def_builtin ("__builtin_altivec_lvexbx", v16qi_ftype_long_pcvoid, ALTIVEC_BUILTIN_LVEXBX);
+  def_builtin ("__builtin_altivec_lvexhx", v8hi_ftype_long_pcvoid, ALTIVEC_BUILTIN_LVEXHX);
+  def_builtin ("__builtin_altivec_lvexwx", v4si_ftype_long_pcvoid, ALTIVEC_BUILTIN_LVEXWX);
   def_builtin ("__builtin_altivec_lvxl", v4si_ftype_long_pcvoid, ALTIVEC_BUILTIN_LVXL);
   def_builtin ("__builtin_altivec_lvx", v4si_ftype_long_pcvoid, ALTIVEC_BUILTIN_LVX);
   def_builtin ("__builtin_altivec_stvx", void_ftype_v4si_long_pvoid, ALTIVEC_BUILTIN_STVX);
@@ -12152,6 +12271,9 @@ altivec_init_builtins (void)
   def_builtin ("__builtin_altivec_stvxl", void_ftype_v4si_long_pvoid, ALTIVEC_BUILTIN_STVXL);
   def_builtin ("__builtin_altivec_stvebx", void_ftype_v16qi_long_pvoid, ALTIVEC_BUILTIN_STVEBX);
   def_builtin ("__builtin_altivec_stvehx", void_ftype_v8hi_long_pvoid, ALTIVEC_BUILTIN_STVEHX);
+  def_builtin ("__builtin_altivec_stvexbx", void_ftype_v16qi_long_pvoid, ALTIVEC_BUILTIN_STVEXBX);
+  def_builtin ("__builtin_altivec_stvexhx", void_ftype_v8hi_long_pvoid, ALTIVEC_BUILTIN_STVEXHX);
+  def_builtin ("__builtin_altivec_stvexwx", void_ftype_v4si_long_pvoid, ALTIVEC_BUILTIN_STVEXWX);
   def_builtin ("__builtin_vec_ld", opaque_ftype_long_pcvoid, ALTIVEC_BUILTIN_VEC_LD);
   def_builtin ("__builtin_vec_lde", opaque_ftype_long_pcvoid, ALTIVEC_BUILTIN_VEC_LDE);
   def_builtin ("__builtin_vec_ldl", opaque_ftype_long_pcvoid, ALTIVEC_BUILTIN_VEC_LDL);
@@ -12160,12 +12282,18 @@ altivec_init_builtins (void)
   def_builtin ("__builtin_vec_lvebx", v16qi_ftype_long_pcvoid, ALTIVEC_BUILTIN_VEC_LVEBX);
   def_builtin ("__builtin_vec_lvehx", v8hi_ftype_long_pcvoid, ALTIVEC_BUILTIN_VEC_LVEHX);
   def_builtin ("__builtin_vec_lvewx", v4si_ftype_long_pcvoid, ALTIVEC_BUILTIN_VEC_LVEWX);
+  def_builtin ("__builtin_vec_lvexbx", v16qi_ftype_long_pcvoid, ALTIVEC_BUILTIN_VEC_LVEXBX);
+  def_builtin ("__builtin_vec_lvexhx", v8hi_ftype_long_pcvoid, ALTIVEC_BUILTIN_VEC_LVEXHX);
+  def_builtin ("__builtin_vec_lvexwx", v4si_ftype_long_pcvoid, ALTIVEC_BUILTIN_VEC_LVEXWX);
   def_builtin ("__builtin_vec_st", void_ftype_opaque_long_pvoid, ALTIVEC_BUILTIN_VEC_ST);
   def_builtin ("__builtin_vec_ste", void_ftype_opaque_long_pvoid, ALTIVEC_BUILTIN_VEC_STE);
   def_builtin ("__builtin_vec_stl", void_ftype_opaque_long_pvoid, ALTIVEC_BUILTIN_VEC_STL);
   def_builtin ("__builtin_vec_stvewx", void_ftype_opaque_long_pvoid, ALTIVEC_BUILTIN_VEC_STVEWX);
   def_builtin ("__builtin_vec_stvebx", void_ftype_opaque_long_pvoid, ALTIVEC_BUILTIN_VEC_STVEBX);
   def_builtin ("__builtin_vec_stvehx", void_ftype_opaque_long_pvoid, ALTIVEC_BUILTIN_VEC_STVEHX);
+  def_builtin ("__builtin_vec_stvexwx", void_ftype_opaque_long_pvoid, ALTIVEC_BUILTIN_VEC_STVEXWX);
+  def_builtin ("__builtin_vec_stvexbx", void_ftype_opaque_long_pvoid, ALTIVEC_BUILTIN_VEC_STVEXBX);
+  def_builtin ("__builtin_vec_stvexhx", void_ftype_opaque_long_pvoid, ALTIVEC_BUILTIN_VEC_STVEXHX);
 
   def_builtin ("__builtin_vsx_lxvd2x_v2df", v2df_ftype_long_pcvoid,
 	       VSX_BUILTIN_LXVD2X_V2DF);
@@ -12195,6 +12323,40 @@ altivec_init_builtins (void)
 	       VSX_BUILTIN_VEC_LD);
   def_builtin ("__builtin_vec_vsx_st", void_ftype_opaque_long_pvoid,
 	       VSX_BUILTIN_VEC_ST);
+
+  /* Power ISA 2.07 */
+  def_builtin ("__builtin_altivec_lvtlx",  v16qi_ftype_long_pcvoid, ALTIVEC_BUILTIN_LVTLX);
+  def_builtin ("__builtin_altivec_lvtlxl", v16qi_ftype_long_pcvoid, ALTIVEC_BUILTIN_LVTLXL);
+  def_builtin ("__builtin_altivec_lvtrx",  v16qi_ftype_long_pcvoid, ALTIVEC_BUILTIN_LVTRX);
+  def_builtin ("__builtin_altivec_lvtrxl", v16qi_ftype_long_pcvoid, ALTIVEC_BUILTIN_LVTRXL);
+
+  def_builtin ("__builtin_vec_lvtlx",  v16qi_ftype_long_pcvoid, ALTIVEC_BUILTIN_VEC_LVTLX);
+  def_builtin ("__builtin_vec_lvtlxl", v16qi_ftype_long_pcvoid, ALTIVEC_BUILTIN_VEC_LVTLXL);
+  def_builtin ("__builtin_vec_lvtrx",  v16qi_ftype_long_pcvoid, ALTIVEC_BUILTIN_VEC_LVTRX);
+  def_builtin ("__builtin_vec_lvtrxl", v16qi_ftype_long_pcvoid, ALTIVEC_BUILTIN_VEC_LVTRXL);
+
+  def_builtin ("__builtin_altivec_stvflx",  void_ftype_v16qi_long_pvoid, ALTIVEC_BUILTIN_STVFLX);
+  def_builtin ("__builtin_altivec_stvflxl", void_ftype_v16qi_long_pvoid, ALTIVEC_BUILTIN_STVFLXL);
+  def_builtin ("__builtin_altivec_stvfrx",  void_ftype_v16qi_long_pvoid, ALTIVEC_BUILTIN_STVFRX);
+  def_builtin ("__builtin_altivec_stvfrxl", void_ftype_v16qi_long_pvoid, ALTIVEC_BUILTIN_STVFRXL);
+
+  def_builtin ("__builtin_vec_stvflx",  void_ftype_v16qi_long_pvoid, ALTIVEC_BUILTIN_VEC_STVFLX);
+  def_builtin ("__builtin_vec_stvflxl", void_ftype_v16qi_long_pvoid, ALTIVEC_BUILTIN_VEC_STVFLXL);
+  def_builtin ("__builtin_vec_stvfrx",  void_ftype_v16qi_long_pvoid, ALTIVEC_BUILTIN_VEC_STVFRX);
+  def_builtin ("__builtin_vec_stvfrxl", void_ftype_v16qi_long_pvoid, ALTIVEC_BUILTIN_VEC_STVFRXL);
+
+  def_builtin ("__builtin_altivec_lvswx",  v16qi_ftype_long_pcvoid, ALTIVEC_BUILTIN_LVSWX);
+  def_builtin ("__builtin_altivec_lvswxl", v16qi_ftype_long_pcvoid, ALTIVEC_BUILTIN_LVSWXL);
+  def_builtin ("__builtin_vec_lvswx",  v16qi_ftype_long_pcvoid, ALTIVEC_BUILTIN_VEC_LVSWX);
+  def_builtin ("__builtin_vec_lvswxl", v16qi_ftype_long_pcvoid, ALTIVEC_BUILTIN_VEC_LVSWXL);
+
+  def_builtin ("__builtin_altivec_lvsm",  v16qi_ftype_long_pcvoid, ALTIVEC_BUILTIN_LVSM);
+  def_builtin ("__builtin_vec_lvsm",  v16qi_ftype_long_pcvoid, ALTIVEC_BUILTIN_VEC_LVSM);
+
+  def_builtin ("__builtin_altivec_stvswx",  void_ftype_v16qi_long_pvoid, ALTIVEC_BUILTIN_STVSWX);
+  def_builtin ("__builtin_altivec_stvswxl", void_ftype_v16qi_long_pvoid, ALTIVEC_BUILTIN_STVSWXL);
+  def_builtin ("__builtin_vec_stvswx",  void_ftype_v16qi_long_pvoid, ALTIVEC_BUILTIN_VEC_STVSWX);
+  def_builtin ("__builtin_vec_stvswxl", void_ftype_v16qi_long_pvoid, ALTIVEC_BUILTIN_VEC_STVSWXL);
 
   def_builtin ("__builtin_vec_step", int_ftype_opaque, ALTIVEC_BUILTIN_VEC_STEP);
   def_builtin ("__builtin_vec_splats", opaque_ftype_opaque, ALTIVEC_BUILTIN_VEC_SPLATS);
@@ -12499,6 +12661,9 @@ builtin_function_type (enum machine_mode mode_ret, enum machine_mode mode_arg0,
     case ALTIVEC_BUILTIN_VMULEUH_UNS:
     case ALTIVEC_BUILTIN_VMULOUB_UNS:
     case ALTIVEC_BUILTIN_VMULOUH_UNS:
+    case ALTIVEC_BUILTIN_VABSDUB:
+    case ALTIVEC_BUILTIN_VABSDUH:
+    case ALTIVEC_BUILTIN_VABSDUW:
       h.uns_p[0] = 1;
       h.uns_p[1] = 1;
       h.uns_p[2] = 1;
@@ -22276,6 +22441,8 @@ rs6000_adjust_cost (rtx insn, rtx link, rtx dep_insn, int cost)
                  || rs6000_cpu_attr == CPU_PPC750
                  || rs6000_cpu_attr == CPU_PPC7400
                  || rs6000_cpu_attr == CPU_PPC7450
+                 || rs6000_cpu_attr == CPU_PPCE5500
+                 || rs6000_cpu_attr == CPU_PPCE6500
                  || rs6000_cpu_attr == CPU_POWER4
                  || rs6000_cpu_attr == CPU_POWER5
 		 || rs6000_cpu_attr == CPU_POWER7
@@ -22850,6 +23017,8 @@ rs6000_issue_rate (void)
   case CPU_PPCE300C3:
   case CPU_PPCE500MC:
   case CPU_PPCE500MC64:
+  case CPU_PPCE5500:
+  case CPU_PPCE6500:
   case CPU_TITAN:
     return 2;
   case CPU_RIOS2:
@@ -27074,6 +27243,7 @@ static struct rs6000_opt_mask const rs6000_opt_masks[] =
 static struct rs6000_opt_mask const rs6000_builtin_mask_names[] =
 {
   { "altivec",		 RS6000_BTM_ALTIVEC,	false, false },
+  { "altivec2",		 RS6000_BTM_ALTIVEC2,	false, false },
   { "vsx",		 RS6000_BTM_VSX,	false, false },
   { "spe",		 RS6000_BTM_SPE,	false, false },
   { "paired",		 RS6000_BTM_PAIRED,	false, false },
