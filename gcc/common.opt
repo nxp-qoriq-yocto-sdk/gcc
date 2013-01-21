@@ -2050,6 +2050,10 @@ ftree-vrp
 Common Report Var(flag_tree_vrp) Init(0) Optimization
 Perform Value Range Propagation on trees
 
+fopt-array-offset
+Common Report Var(flag_opt_array_offset)
+Expand array offset address calculations
+
 funit-at-a-time
 Common Report Var(flag_unit_at_a_time) Init(1) Optimization
 Compile whole compilation unit at a time
