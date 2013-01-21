@@ -1178,6 +1178,7 @@ init_optimization_passes (void)
     backend might produce already lowered functions that are not processed
     by these passes.  */
   p = &all_lowering_passes;
+  NEXT_PASS (pass_widen_types_stmts);
   NEXT_PASS (pass_warn_unused_result);
   NEXT_PASS (pass_diagnose_omp_blocks);
   NEXT_PASS (pass_diagnose_tm_blocks);
@@ -1202,6 +1203,7 @@ init_optimization_passes (void)
       NEXT_PASS (pass_fixup_cfg);
       NEXT_PASS (pass_init_datastructures);
       NEXT_PASS (pass_expand_omp);
+      NEXT_PASS (pass_widen_types_bbs);
 
       NEXT_PASS (pass_referenced_vars);
       NEXT_PASS (pass_build_ssa);

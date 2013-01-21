@@ -1856,6 +1856,10 @@ fstrict-overflow
 Common Report Var(flag_strict_overflow)
 Treat signed overflow as undefined
 
+fwiden-types
+Common Report Var(flag_widen_types)
+Widen signed integral variables (local, whose address has not been taken, non-volatile and having precision less than that of long) to long (retaining original qualifiers)
+
 fsyntax-only
 Common Report Var(flag_syntax_only)
 Check for syntax errors, then stop

@@ -350,6 +350,7 @@ struct register_pass_info
 
 extern void tree_lowering_passes (tree decl);
 
+extern struct gimple_opt_pass pass_widen_types_stmts;
 extern struct gimple_opt_pass pass_mudflap_1;
 extern struct gimple_opt_pass pass_mudflap_2;
 extern struct gimple_opt_pass pass_lower_cf;
@@ -411,6 +412,7 @@ extern struct gimple_opt_pass pass_lower_vector_ssa;
 extern struct gimple_opt_pass pass_lower_omp;
 extern struct gimple_opt_pass pass_diagnose_omp_blocks;
 extern struct gimple_opt_pass pass_expand_omp;
+extern struct gimple_opt_pass pass_widen_types_bbs;
 extern struct gimple_opt_pass pass_expand_omp_ssa;
 extern struct gimple_opt_pass pass_object_sizes;
 extern struct gimple_opt_pass pass_strlen;
