@@ -36,6 +36,14 @@ rs6000-c.o: $(srcdir)/config/rs6000/rs6000-c.c \
 	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) \
 		$(srcdir)/config/rs6000/rs6000-c.c
 
+extelim.o: $(srcdir)/config/rs6000/extelim.c $(CONFIG_H) $(SYSTEM_H) coretypes.h $(TM_H) $(RTL_H) \
+   $(TREE_H) $(TM_P_H) $(FLAGS_H) $(REGS_H) hard-reg-set.h $(BASIC_BLOCK_H) \
+   insn-config.h $(FUNCTION_H) $(EXPR_H) $(INSN_ATTR_H) $(RECOG_H) \
+   toplev.h $(TARGET_H) $(TIMEVAR_H) $(OPTABS_H) insn-codes.h  \
+   output.h $(PARAMS_H) $(TREE_PASS_H) $(CGRAPH_H)
+	$(COMPILER) -c $(ALL_COMPILERFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) \
+		$(srcdir)/config/rs6000/extelim.c
+
 $(srcdir)/config/rs6000/rs6000-tables.opt: $(srcdir)/config/rs6000/genopt.sh \
   $(srcdir)/config/rs6000/rs6000-cpus.def
 	$(SHELL) $(srcdir)/config/rs6000/genopt.sh $(srcdir)/config/rs6000 > \

@@ -493,6 +493,9 @@ extern struct rtl_opt_pass pass_rtl_eh;
 extern struct rtl_opt_pass pass_initial_value_sets;
 extern struct rtl_opt_pass pass_unshare_all_rtl;
 extern struct rtl_opt_pass pass_instantiate_virtual_regs;
+#ifdef ENABLE_EXTELIM
+extern struct rtl_opt_pass pass_rtl_extelim;
+#endif
 extern struct rtl_opt_pass pass_rtl_fwprop;
 extern struct rtl_opt_pass pass_rtl_fwprop_addr;
 extern struct rtl_opt_pass pass_jump2;
