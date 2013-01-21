@@ -2337,6 +2337,8 @@ allow_ip_end_pos_p (struct loop *loop)
   return false;
 }
 
+#define WANT_LOAD_UPDATES (flag_use_load_updates == 1)
+
 /* If possible, adds autoincrement candidates BASE + STEP * i based on use USE.
    Important field is set to IMPORTANT.  */
 
@@ -2362,7 +2364,10 @@ add_autoinc_candidates (struct ivopts_data *data, tree base, tree step,
 
   mem_mode = TYPE_MODE (TREE_TYPE (*use->op_p));
   if ((HAVE_PRE_INCREMENT && GET_MODE_SIZE (mem_mode) == cstepi)
-      || (HAVE_PRE_DECREMENT && GET_MODE_SIZE (mem_mode) == -cstepi))
+      || (HAVE_PRE_DECREMENT && GET_MODE_SIZE (mem_mode) == -cstepi)
+      || (WANT_LOAD_UPDATES && HAVE_PRE_MODIFY_DISP
+          && (GET_MODE_SIZE (mem_mode) != 0
+              && cstepi % GET_MODE_SIZE (mem_mode) == 0)))
     {
       enum tree_code code = MINUS_EXPR;
       tree new_base;
@@ -3243,6 +3248,7 @@ get_address_cost (bool symbol_present, bool var_present,
   address_cost_data data;
   static bool has_preinc[MAX_MACHINE_MODE], has_postinc[MAX_MACHINE_MODE];
   static bool has_predec[MAX_MACHINE_MODE], has_postdec[MAX_MACHINE_MODE];
+  static bool has_premod_d[MAX_MACHINE_MODE];
   unsigned cost, acost, complexity;
   bool offset_p, ratio_p, autoinc;
   HOST_WIDE_INT s_offset, autoinc_offset, msize;
@@ -3338,6 +3344,14 @@ get_address_cost (bool symbol_present, bool var_present,
 	{
 	  addr = gen_rtx_POST_INC (address_mode, reg0);
 	  has_postinc[mem_mode]
+	    = memory_address_addr_space_p (mem_mode, addr, as);
+	}
+      if (WANT_LOAD_UPDATES && HAVE_PRE_MODIFY_DISP)
+	{
+	  addr = gen_rtx_PRE_MODIFY (address_mode, reg0,
+	                             gen_rtx_PLUS (address_mode, reg0,
+	                                           GEN_INT (cstep)));
+	  has_premod_d[mem_mode]
 	    = memory_address_addr_space_p (mem_mode, addr, as);
 	}
       for (i = 0; i < 16; i++)
@@ -3448,7 +3462,8 @@ get_address_cost (bool symbol_present, bool var_present,
 	      fprintf (dump_file, "index costs %d\n", acost);
 	    }
 	  if (has_predec[mem_mode] || has_postdec[mem_mode]
-	      || has_preinc[mem_mode] || has_postinc[mem_mode])
+	      || has_preinc[mem_mode] || has_postinc[mem_mode]
+	      || (WANT_LOAD_UPDATES && has_premod_d[mem_mode]))
 	    fprintf (dump_file, "  May include autoinc/dec\n");
 	  fprintf (dump_file, "\n");
 	}
@@ -3478,7 +3493,11 @@ get_address_cost (bool symbol_present, bool var_present,
 	   || (has_preinc[mem_mode] && autoinc_offset == msize
 	       && msize == cstep)
 	   || (has_predec[mem_mode] && autoinc_offset == -msize
-	       && msize == -cstep))
+	       && msize == -cstep)
+	   || (WANT_LOAD_UPDATES && has_premod_d[mem_mode]
+	       && msize != 0
+	       && autoinc_offset % msize == 0
+	       && cstep % msize == 0))
     autoinc = true;
 
   cost = 0;
