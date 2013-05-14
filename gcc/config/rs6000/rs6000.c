@@ -28761,3 +28761,20 @@ rs6000_set_up_by_prologue (struct hard_reg_set_container *set)
 struct gcc_target targetm = TARGET_INITIALIZER;
 
 #include "gt-rs6000.h"
+
+bool
+rs6000_bypass_load_on_store_collision_p (rtx out_insn, rtx in_insn)
+{
+  /* The out_insn is a store and the in_insn is a load */
+  if (flag_bypass_load_on_store &&
+      (GET_CODE (PATTERN (out_insn)) == SET &&
+       GET_CODE (SET_DEST (PATTERN (out_insn))) == MEM &&
+       GET_CODE (SET_SRC (PATTERN (out_insn))) == REG) &&
+      (GET_CODE (PATTERN (in_insn)) == SET &&
+       GET_CODE (SET_DEST (PATTERN (in_insn))) == REG &&
+       GET_CODE (SET_SRC (PATTERN (in_insn))) == MEM))
+    return rtx_equal_p (SET_DEST (PATTERN (out_insn)),
+                        SET_SRC  (PATTERN (in_insn)));
+  else
+    return false;
+}
