@@ -1,5 +1,5 @@
 /* { dg-do compile } */
-/* { dg-options "-O3 -fdump-tree-ldist-details" } */
+/* { dg-options "-O3 -fno-tree-ldp-const-iter -fdump-tree-ldist-details" } */
 
 int x[1000];
 

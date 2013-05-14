@@ -167,6 +167,10 @@ mmultiple
 Target Report Mask(MULTIPLE) Save
 Generate load/store multiple instructions
 
+mmax_block_clear=
+Target RejectNegative Joined UInteger Var(rs6000_max_block_clear) Init(0)
+Maximum size in bytes above which generate string instructions for block clear
+
 mstring
 Target Report Mask(STRING) Save
 Generate string instructions for block moves

@@ -2671,6 +2671,10 @@ rs6000_option_override_internal (bool global_init_p)
   if (optimize >= 3 && global_init_p)
     flag_ira_loop_pressure = 1;
 
+  if (!global_options_set.x_flag_tree_ldp_const_iter &&
+      (flag_tree_loop_distribution || flag_tree_loop_distribute_patterns))
+    flag_tree_ldp_const_iter = 1;
+
   /* Set the pointer size.  */
   if (TARGET_64BIT)
     {
@@ -13407,8 +13411,63 @@ expand_block_clear (rtx operands[])
 
   if (optimize_size && bytes > 3 * clear_step)
     return 0;
-  if (! optimize_size && bytes > 8 * clear_step)
-    return 0;
+
+  if (!optimize_size)
+    {
+      if (rs6000_cpu == PROCESSOR_PPCE500MC)
+        {
+          /* Based on comparison of performance data between generating sequence
+             of store instructions and 'memset' call,'memset' executes faster if
+             the no of bytes is > 136.
+             An Upper bound limit has been set for the generation of store
+             instructions to prevent stack overflow due to code bloat.  */
+          if (bytes > (rs6000_max_block_clear ?
+             ((rs6000_max_block_clear > 256) ? 256 : rs6000_max_block_clear)  : 136))
+            return 0;
+        }
+      else if ((rs6000_cpu == PROCESSOR_PPC8540) && align >= 64)
+        {
+          /* Based on comparison of performance data between generating sequence
+             of store instructions (vector) and 'memset' call,'memset' executes faster if
+             the no of bytes is > 172.
+             An Upper bound limit has been set for the generation of store
+             instructions to prevent stack overflow due to code bloat.  */
+          if (bytes > (rs6000_max_block_clear ?
+             ((rs6000_max_block_clear > 256) ? 256 : rs6000_max_block_clear)  : 172))
+            return 0;
+        }
+      else if ((rs6000_cpu == PROCESSOR_PPCE5500 ||
+                rs6000_cpu == PROCESSOR_PPCE6500 ||
+                rs6000_cpu == PROCESSOR_PPCE500MC64) &&  TARGET_32BIT)
+        {
+          /* Based on comparison of performance data between generating sequence
+             of store instructions and 'memset' call,'memset' executes faster if
+             the no of bytes is > 120.
+             An Upper bound limit has been set for the generation of store
+             instructions to prevent stack overflow due to code bloat.  */
+          if (bytes > (rs6000_max_block_clear ?
+             ((rs6000_max_block_clear > 256) ? 256 : rs6000_max_block_clear)  : 120))
+            return 0;
+        }
+      else if ((rs6000_cpu == PROCESSOR_PPCE5500 ||
+                rs6000_cpu == PROCESSOR_PPCE6500 ||
+                rs6000_cpu == PROCESSOR_PPCE500MC64) &&  TARGET_64BIT)
+        {
+          /* Based on comparison of performance data between generating sequence
+             of store instructions and 'memset' call,'memset' executes faster if
+             the no of bytes is > 248.
+             An Upper bound limit has been set for the generation of store
+             instructions to prevent stack overflow due to code bloat.  */
+          if (bytes > (rs6000_max_block_clear ?
+             ((rs6000_max_block_clear > 512) ? 512 : rs6000_max_block_clear)  : 248))
+            return 0;
+        }
+          /* An Upper bound limit has been set for the generation of store
+             instructions to prevent stack overflow due to code bloat.  */
+      else if (bytes > (rs6000_max_block_clear ?
+              ((rs6000_max_block_clear > 256) ? 256 : rs6000_max_block_clear) : 8 * clear_step))
+        return 0;
+    }
 
   for (offset = 0; bytes > 0; offset += clear_bytes, bytes -= clear_bytes)
     {

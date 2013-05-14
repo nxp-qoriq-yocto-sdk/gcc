@@ -362,6 +362,10 @@ generate_builtin (struct loop *loop, bitmap partition, bool copy_p)
   if (!nb_iter || nb_iter == chrec_dont_know)
     return false;
 
+  /* Generate built-in function, if the iteration count is known at compile time */
+  if (flag_tree_ldp_const_iter && (TREE_CODE (nb_iter) != INTEGER_CST))
+    return false;
+
   bbs = get_loop_body_in_dom_order (loop);
 
   for (i = 0; i < loop->num_nodes; i++)
@@ -1131,8 +1135,9 @@ ldist_gen (struct loop *loop, struct graph *rdg,
   BITMAP_FREE (processed);
   nbp = VEC_length (bitmap, partitions);
 
-  if (nbp <= 1
-      || partition_contains_all_rw (rdg, partitions))
+  if (flag_tree_ldp_const_iter ?
+     (!nbp || ((nbp !=  1) && partition_contains_all_rw (rdg, partitions))) :
+     (nbp <= 1 || partition_contains_all_rw (rdg, partitions)))
     goto ldist_done;
 
   if (dump_file && (dump_flags & TDF_DETAILS))
