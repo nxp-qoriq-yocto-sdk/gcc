@@ -31,6 +31,7 @@ along with GCC; see the file COPYING3.  If not see
     backend might produce already lowered functions that are not processed
     by these passes.  */
   INSERT_PASSES_AFTER (all_lowering_passes)
+  NEXT_PASS (pass_widen_types_stmts);
   NEXT_PASS (pass_warn_unused_result);
   NEXT_PASS (pass_diagnose_omp_blocks);
   NEXT_PASS (pass_diagnose_tm_blocks);
@@ -53,6 +54,7 @@ along with GCC; see the file COPYING3.  If not see
   PUSH_INSERT_PASSES_WITHIN (pass_early_local_passes)
       NEXT_PASS (pass_fixup_cfg);
       NEXT_PASS (pass_init_datastructures);
+      NEXT_PASS (pass_widen_types_bbs);
 
       NEXT_PASS (pass_build_ssa);
       NEXT_PASS (pass_ubsan);

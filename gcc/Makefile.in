@@ -1465,6 +1465,7 @@ OBJS = \
 	vmsdbgout.o \
 	vtable-verify.o \
 	web.o \
+	widen-types.o \
 	xcoffout.o \
 	$(out_object_file) \
 	$(EXTRA_OBJS) \

@@ -2014,6 +2014,10 @@ ftls-model=
 Common Joined RejectNegative Enum(tls_model) Var(flag_tls_default) Init(TLS_MODEL_GLOBAL_DYNAMIC)
 -ftls-model=[global-dynamic|local-dynamic|initial-exec|local-exec]	Set the default thread-local storage code generation model
 
+fwiden-types
+Common Report Var(flag_widen_types)
+Widen signed integral variables (local, whose address has not been taken, non-volatile and having precision less than that of long) to long (retaining original qualifiers)
+
 Enum
 Name(tls_model) Type(enum tls_model) UnknownError(unknown TLS model %qs)
 
