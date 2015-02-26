@@ -701,7 +701,7 @@ extern unsigned char rs6000_recip_bits[];
 #define REGISTER_TARGET_PRAGMAS() do {				\
   c_register_pragma (0, "longcall", rs6000_pragma_longcall);	\
   targetm.target_option.pragma_parse = rs6000_pragma_target_parse; \
-  targetm.resolve_overloaded_builtin = altivec_resolve_overloaded_builtin; \
+  targetm.resolve_overloaded_builtin = rs6000_resolve_overloaded_builtin; \
   rs6000_target_modify_macros_ptr = rs6000_target_modify_macros; \
 } while (0)
 
@@ -2623,6 +2623,7 @@ extern int frame_pointer_needed;
 #define RS6000_BTM_DFP		MASK_DFP	/* Decimal floating point.  */
 #define RS6000_BTM_HARD_FLOAT	MASK_SOFT_FLOAT	/* Hardware floating point.  */
 #define RS6000_BTM_LDBL128	MASK_MULTIPLE	/* 128-bit long double.  */
+#define RS6000_BTM_ISEL		MASK_ISEL	/* Target supports isel instruction */
 
 #define RS6000_BTM_COMMON	(RS6000_BTM_ALTIVEC			\
 				 | RS6000_BTM_ALTIVEC2			\
@@ -2638,7 +2639,8 @@ extern int frame_pointer_needed;
 				 | RS6000_BTM_CELL			\
 				 | RS6000_BTM_DFP			\
 				 | RS6000_BTM_HARD_FLOAT		\
-				 | RS6000_BTM_LDBL128)
+				 | RS6000_BTM_LDBL128			\
+				 | RS6000_BTM_ISEL)
 
 /* Define builtin enum index.  */
 
@@ -2795,3 +2797,41 @@ enum rs6000_builtin_type_index
 extern GTY(()) tree rs6000_builtin_types[RS6000_BTI_MAX];
 extern GTY(()) tree rs6000_builtin_decls[RS6000_BUILTIN_COUNT];
 
+/* Values for struct isel_builtin_desc.arg_flags.  */
+enum {
+  ISEL_FLAG_CMP_PTR = 0x1,
+  ISEL_FLAG_CMP_SIGNED = 0x2,
+  ISEL_FLAG_CMP_UNSIGNED = 0x4,
+  ISEL_FLAG_CMP_MASK = 0x7,
+  ISEL_FLAG_SEL_PTR = 0x10,
+  ISEL_FLAG_SEL_SIGNED = 0x20,
+  ISEL_FLAG_SEL_UNSIGNED = 0x40,
+  ISEL_FLAG_SEL_MASK = 0x70
+};
+
+struct isel_builtin_desc {
+  /* Name of this builtin.  NULL if we should construct it.  */
+  const char *name;
+
+  /* Flags for argument combinations accepted by the builtin.
+     Zero if this builtin is a generic builtin, to be resolved later.  */
+  int arg_flags;
+
+  /* The code of the builtin.  */
+  enum rs6000_builtins code;
+
+  /* rtx_code and machine_mode are not available here; use ints instead.  */
+  /* The comparison code the builtin uses.  */
+  int cmp_code;
+
+  /* The mode the builtin does comparisons in.  */
+  int cmp_mode;
+
+  /* The mode the builtin's selected arguments are in.
+     Also happens to be its result mode.  */
+  int sel_mode;
+};
+
+/* Arrays describing isel builtins.  */
+extern const struct isel_builtin_desc builtin_iselw[32];
+extern const struct isel_builtin_desc builtin_iseld[32];
