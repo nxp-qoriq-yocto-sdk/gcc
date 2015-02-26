@@ -1316,6 +1316,7 @@ OBJS = \
 	modulo-sched.o \
 	omega.o \
 	omp-low.o \
+	opt-array-offset.o \
 	optabs.o \
 	options-save.o \
 	opts-global.o \

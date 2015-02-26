@@ -252,6 +252,7 @@ along with GCC; see the file COPYING3.  If not see
       NEXT_PASS (pass_phiopt);
       NEXT_PASS (pass_fold_builtins);
       NEXT_PASS (pass_optimize_widening_mul);
+      NEXT_PASS (pass_opt_array_offset);
       NEXT_PASS (pass_tail_calls);
       NEXT_PASS (pass_rename_ssa_copies);
       /* FIXME: If DCE is not run before checking for uninitialized uses,

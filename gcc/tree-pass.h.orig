@@ -489,6 +489,9 @@ extern gimple_opt_pass *make_pass_fixup_cfg (gcc::context *ctxt);
 
 extern rtl_opt_pass *make_pass_expand (gcc::context *ctxt);
 extern rtl_opt_pass *make_pass_instantiate_virtual_regs (gcc::context *ctxt);
+#ifdef ENABLE_EXTELIM
+extern rtl_opt_pass *make_pass_rtl_extelim (gcc::context *ctxt);
+#endif
 extern rtl_opt_pass *make_pass_rtl_fwprop (gcc::context *ctxt);
 extern rtl_opt_pass *make_pass_rtl_fwprop_addr (gcc::context *ctxt);
 extern rtl_opt_pass *make_pass_jump (gcc::context *ctxt);

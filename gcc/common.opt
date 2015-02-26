@@ -1595,6 +1595,10 @@ fomit-frame-pointer
 Common Report Var(flag_omit_frame_pointer) Optimization
 When possible do not generate stack frames
 
+fopt-array-offset
+Common Report Var(flag_opt_array_offset)
+Expand array offset address calculations
+
 fopt-info
 Common Report Var(flag_opt_info) Optimization
 Enable all optimization info dumps on stderr

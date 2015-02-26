@@ -417,6 +417,7 @@ extern gimple_opt_pass *make_pass_cse_reciprocals (gcc::context *ctxt);
 extern gimple_opt_pass *make_pass_cse_sincos (gcc::context *ctxt);
 extern gimple_opt_pass *make_pass_optimize_bswap (gcc::context *ctxt);
 extern gimple_opt_pass *make_pass_optimize_widening_mul (gcc::context *ctxt);
+extern gimple_opt_pass *make_pass_opt_array_offset (gcc::context *ctxt);
 extern gimple_opt_pass *make_pass_warn_function_return (gcc::context *ctxt);
 extern gimple_opt_pass *make_pass_warn_function_noreturn (gcc::context *ctxt);
 extern gimple_opt_pass *make_pass_cselim (gcc::context *ctxt);
