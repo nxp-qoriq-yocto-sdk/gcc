@@ -445,8 +445,6 @@ powerpc*-*-*)
 		cpu_is_64bit=yes
 		;;
 	esac
-	tm_defines="${tm_defines} ENABLE_EXTELIM"
-	extra_objs="extelim.o"
 	extra_options="${extra_options} g.opt fused-madd.opt rs6000/rs6000-tables.opt"
 	;;
 rs6000*-*-*)

@@ -2,6 +2,7 @@
 /* { dg-require-effective-target size32plus } */
 /* { dg-options "-O2 -fmodulo-sched -fdump-rtl-sms --param sms-min-sc=1" } */
 /* { dg-options "-O2 -fmodulo-sched -fdump-rtl-sms --param sms-min-sc=1 -fmodulo-sched-allow-regmoves" { target powerpc*-*-* } } */
+/* { dg-additional-options "-fno-extelim" { target { powerpc*-*-* && lp64 } } } */
 
 extern void abort (void);
 

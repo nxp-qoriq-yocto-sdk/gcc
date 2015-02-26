@@ -352,9 +352,6 @@ along with GCC; see the file COPYING3.  If not see
       NEXT_PASS (pass_web);
       NEXT_PASS (pass_rtl_cprop);
       NEXT_PASS (pass_cse2);
-#ifdef ENABLE_EXTELIM
-      NEXT_PASS (pass_rtl_extelim);
-#endif
       NEXT_PASS (pass_rtl_dse1);
       NEXT_PASS (pass_rtl_fwprop_addr);
       NEXT_PASS (pass_inc_dec);

@@ -3,7 +3,7 @@
 #include <stdarg.h>
 #include "tree-vect.h"
 
-#define N 128
+#define N 64
 signed char data_ch[N];
 
 volatile int y = 0;

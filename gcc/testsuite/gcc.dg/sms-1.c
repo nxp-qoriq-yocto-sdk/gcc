@@ -2,6 +2,7 @@
    due to not handling of subreg in the lhs that is fixed.  */
 /* { dg-do run } */
 /* { dg-options "-O2 -fmodulo-sched -fmodulo-sched-allow-regmoves -fdump-rtl-sms" } */
+/* { dg-additional-options "-fno-extelim" { target { powerpc*-*-* && lp64 } } } */
 
 
 #include <limits.h>
