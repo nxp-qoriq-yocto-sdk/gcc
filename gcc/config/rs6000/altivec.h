@@ -371,6 +371,30 @@
 #define vec_vupklsw __builtin_vec_vupklsw
 #endif
 
+#ifdef __ALTIVEC2__
+/* New Altivec instructions */
+#define vec_absd __builtin_vec_absd
+#define vec_lvexbx __builtin_vec_lvexbx
+#define vec_lvexhx __builtin_vec_lvexhx
+#define vec_lvexwx __builtin_vec_lvexwx
+#define vec_stvexbx __builtin_vec_stvexbx
+#define vec_stvexhx __builtin_vec_stvexhx
+#define vec_stvexwx __builtin_vec_stvexwx
+#define vec_lvswx __builtin_vec_lvswx
+#define vec_lvswxl __builtin_vec_lvswxl
+#define vec_stvswx __builtin_vec_stvswx
+#define vec_stvswxl __builtin_vec_stvswxl
+#define vec_lvsm __builtin_vec_lvsm
+#define vec_lvtlx __builtin_vec_lvtlx
+#define vec_lvtlxl __builtin_vec_lvtlxl
+#define vec_lvtrx __builtin_vec_lvtrx
+#define vec_lvtrxl __builtin_vec_lvtrxl
+#define vec_stvflx __builtin_vec_stvflx
+#define vec_stvflxl __builtin_vec_stvflxl
+#define vec_stvfrx __builtin_vec_stvfrx
+#define vec_stvfrxl __builtin_vec_stvfrxl
+#endif
+
 /* Predicates.
    For C++, we use templates in order to allow non-parenthesized arguments.
    For C, instead, we use macros since non-parenthesized arguments were

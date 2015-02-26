@@ -632,6 +632,42 @@
 		     | RS6000_BTC_BINARY),				\
 		    CODE_FOR_ ## ICODE)			/* ICODE */
 
+/* Power ISA 2.07 altivec */
+#define BU_ALTIVC2_2(ENUM, NAME, ATTR, ICODE)                          \
+  RS6000_BUILTIN_2 (ALTIVEC_BUILTIN_ ## ENUM,          /* ENUM */      \
+                   "__builtin_altivec_" NAME,          /* NAME */      \
+                   (RS6000_BTM_ALTIVEC                 /* MASK */      \
+                    | RS6000_BTM_ALTIVEC2),                            \
+                   (RS6000_BTC_ ## ATTR                /* ATTR */      \
+                    | RS6000_BTC_BINARY),                              \
+                   CODE_FOR_ ## ICODE)                 /* ICODE */
+
+#define BU_ALTIVC2_X(ENUM, NAME, ATTR)                                 \
+  RS6000_BUILTIN_X (ALTIVEC_BUILTIN_ ## ENUM,          /* ENUM */      \
+                   "__builtin_altivec_" NAME,          /* NAME */      \
+                   (RS6000_BTM_ALTIVEC                 /* MASK */      \
+                    | RS6000_BTM_ALTIVEC2),                            \
+                   (RS6000_BTC_ ## ATTR                /* ATTR */      \
+                    | RS6000_BTC_SPECIAL),                             \
+                   CODE_FOR_nothing)                   /* ICODE */
+
+#define BU_ALTIVC2_OVERLOAD_2(ENUM, NAME)                              \
+  RS6000_BUILTIN_2 (ALTIVEC_BUILTIN_VEC_ ## ENUM,      /* ENUM */      \
+                   "__builtin_vec_" NAME,              /* NAME */      \
+                   (RS6000_BTM_ALTIVEC                 /* MASK */      \
+                    | RS6000_BTM_ALTIVEC2),                            \
+                   (RS6000_BTC_OVERLOADED              /* ATTR */      \
+                    | RS6000_BTC_BINARY),                              \
+                   CODE_FOR_nothing)                   /* ICODE */
+
+#define BU_ALTIVC2_OVERLOAD_X(ENUM, NAME)                              \
+  RS6000_BUILTIN_X (ALTIVEC_BUILTIN_VEC_ ## ENUM,      /* ENUM */      \
+                   "__builtin_vec_" NAME,              /* NAME */      \
+                   (RS6000_BTM_ALTIVEC                 /* MASK */      \
+                    | RS6000_BTM_ALTIVEC2),                            \
+                   (RS6000_BTC_OVERLOADED              /* ATTR */      \
+                    | RS6000_BTC_SPECIAL),                             \
+                   CODE_FOR_nothing)                   /* ICODE */
 #endif
 
 /* Insure 0 is not a legitimate index.  */
@@ -685,6 +721,9 @@ BU_ALTIVEC_D (DSTST,	      "dstst",		MISC,  	altivec_dstst)
 BU_ALTIVEC_D (DSTSTT,	      "dststt",		MISC,  	altivec_dststt)
 
 /* Altivec 2 argument builtin functions.  */
+BU_ALTIVC2_2 (VABSDUB,        "vabsdub",	CONST,	altivec_vabsdub)
+BU_ALTIVC2_2 (VABSDUH,        "vabsduh",	CONST,	altivec_vabsduh)
+BU_ALTIVC2_2 (VABSDUW,        "vabsduw",	CONST,	altivec_vabsduw)
 BU_ALTIVEC_2 (VADDUBM,        "vaddubm",	CONST,	addv16qi3)
 BU_ALTIVEC_2 (VADDUHM,	      "vadduhm",	CONST,	addv8hi3)
 BU_ALTIVEC_2 (VADDUWM,	      "vadduwm",	CONST,	addv4si3)
@@ -876,6 +915,9 @@ BU_ALTIVEC_X (LVSR,		"lvsr",		    MEM)
 BU_ALTIVEC_X (LVEBX,		"lvebx",	    MEM)
 BU_ALTIVEC_X (LVEHX,		"lvehx",	    MEM)
 BU_ALTIVEC_X (LVEWX,		"lvewx",	    MEM)
+BU_ALTIVC2_X (LVEXBX,		"lvexbx",	    MEM)
+BU_ALTIVC2_X (LVEXHX,		"lvexhx",	    MEM)
+BU_ALTIVC2_X (LVEXWX,		"lvexwx",	    MEM)
 BU_ALTIVEC_X (LVXL,		"lvxl",		    MEM)
 BU_ALTIVEC_X (LVXL_V2DF,	"lvxl_v2df",	    MEM)
 BU_ALTIVEC_X (LVXL_V2DI,	"lvxl_v2di",	    MEM)
@@ -901,9 +943,19 @@ BU_ALTIVEC_C (LVLX,		"lvlx",		    MEM)
 BU_ALTIVEC_C (LVLXL,		"lvlxl",	    MEM)
 BU_ALTIVEC_C (LVRX,		"lvrx",		    MEM)
 BU_ALTIVEC_C (LVRXL,		"lvrxl",	    MEM)
+BU_ALTIVC2_X (LVTLX,           "lvtlx",            MEM)
+BU_ALTIVC2_X (LVTLXL,          "lvtlxl",           MEM)
+BU_ALTIVC2_X (LVTRX,           "lvtrx",            MEM)
+BU_ALTIVC2_X (LVTRXL,          "lvtrxl",           MEM)
+BU_ALTIVC2_X (LVSWX,           "lvswx",            MEM)
+BU_ALTIVC2_X (LVSWXL,          "lvswxl",           MEM)
+BU_ALTIVC2_X (LVSM,            "lvsm",             MEM)
 BU_ALTIVEC_X (STVEBX,		"stvebx",	    MEM)
 BU_ALTIVEC_X (STVEHX,		"stvehx",	    MEM)
 BU_ALTIVEC_X (STVEWX,		"stvewx",	    MEM)
+BU_ALTIVC2_X (STVEXBX,         "stvexbx",          MEM)
+BU_ALTIVC2_X (STVEXHX,         "stvexhx",          MEM)
+BU_ALTIVC2_X (STVEXWX,         "stvexwx",          MEM)
 BU_ALTIVEC_X (STVXL,		"stvxl",	    MEM)
 BU_ALTIVEC_X (STVXL_V2DF,	"stvxl_v2df",	    MEM)
 BU_ALTIVEC_X (STVXL_V2DI,	"stvxl_v2di",	    MEM)
@@ -915,6 +967,12 @@ BU_ALTIVEC_C (STVLX,		"stvlx",	    MEM)
 BU_ALTIVEC_C (STVLXL,		"stvlxl",	    MEM)
 BU_ALTIVEC_C (STVRX,		"stvrx",	    MEM)
 BU_ALTIVEC_C (STVRXL,		"stvrxl",	    MEM)
+BU_ALTIVC2_X (STVFLX,          "stvflx",           MEM)
+BU_ALTIVC2_X (STVFLXL,         "stvflxl",          MEM)
+BU_ALTIVC2_X (STVFRX,          "stvfrx",           MEM)
+BU_ALTIVC2_X (STVFRXL,         "stvfrxl",          MEM)
+BU_ALTIVC2_X (STVSWX,          "stvswx",           MEM)
+BU_ALTIVC2_X (STVSWXL,         "stvswxl",          MEM)
 BU_ALTIVEC_X (MASK_FOR_LOAD,	"mask_for_load",    MISC)
 BU_ALTIVEC_X (MASK_FOR_STORE,	"mask_for_store",   MISC)
 BU_ALTIVEC_X (VEC_INIT_V4SI,	"vec_init_v4si",    CONST)
@@ -959,6 +1017,10 @@ BU_ALTIVEC_OVERLOAD_D (DSTST,	   "dstst")
 BU_ALTIVEC_OVERLOAD_D (DSTSTT,	   "dststt")
 
 /* 2 argument Altivec overloaded builtins.  */
+BU_ALTIVC2_OVERLOAD_2 (ABSD,	   "absd")
+BU_ALTIVC2_OVERLOAD_2 (ABSDUB,	   "absdub")
+BU_ALTIVC2_OVERLOAD_2 (ABSDUH,	   "absduh")
+BU_ALTIVC2_OVERLOAD_2 (ABSDUW,	   "absduw")
 BU_ALTIVEC_OVERLOAD_2 (ADD,	   "add")
 BU_ALTIVEC_OVERLOAD_2 (ADDC,	   "addc")
 BU_ALTIVEC_OVERLOAD_2 (ADDS,	   "adds")
@@ -1131,10 +1193,20 @@ BU_ALTIVEC_OVERLOAD_X (LDL,	   "ldl")
 BU_ALTIVEC_OVERLOAD_X (LVEBX,	   "lvebx")
 BU_ALTIVEC_OVERLOAD_X (LVEHX,	   "lvehx")
 BU_ALTIVEC_OVERLOAD_X (LVEWX,	   "lvewx")
+BU_ALTIVC2_OVERLOAD_X (LVEXBX,	   "lvexbx")
+BU_ALTIVC2_OVERLOAD_X (LVEXHX,	   "lvexhx")
+BU_ALTIVC2_OVERLOAD_X (LVEXWX,	   "lvexwx")
 BU_ALTIVEC_OVERLOAD_X (LVLX,	   "lvlx")
 BU_ALTIVEC_OVERLOAD_X (LVLXL,	   "lvlxl")
 BU_ALTIVEC_OVERLOAD_X (LVRX,	   "lvrx")
 BU_ALTIVEC_OVERLOAD_X (LVRXL,	   "lvrxl")
+BU_ALTIVC2_OVERLOAD_X (LVTLX,	   "lvtlx")
+BU_ALTIVC2_OVERLOAD_X (LVTLXL,	   "lvtlxl")
+BU_ALTIVC2_OVERLOAD_X (LVTRX,	   "lvtrx")
+BU_ALTIVC2_OVERLOAD_X (LVTRXL,	   "lvtrxl")
+BU_ALTIVC2_OVERLOAD_X (LVSWX,	   "lvswx")
+BU_ALTIVC2_OVERLOAD_X (LVSWXL,	   "lvswxl")
+BU_ALTIVC2_OVERLOAD_X (LVSM,	   "lvsm")
 BU_ALTIVEC_OVERLOAD_X (LVSL,	   "lvsl")
 BU_ALTIVEC_OVERLOAD_X (LVSR,	   "lvsr")
 BU_ALTIVEC_OVERLOAD_X (PROMOTE,	   "promote")
@@ -1148,10 +1220,19 @@ BU_ALTIVEC_OVERLOAD_X (STL,	   "stl")
 BU_ALTIVEC_OVERLOAD_X (STVEBX,	   "stvebx")
 BU_ALTIVEC_OVERLOAD_X (STVEHX,	   "stvehx")
 BU_ALTIVEC_OVERLOAD_X (STVEWX,	   "stvewx")
+BU_ALTIVC2_OVERLOAD_X (STVEXBX,	   "stvexbx")
+BU_ALTIVC2_OVERLOAD_X (STVEXHX,	   "stvexhx")
+BU_ALTIVC2_OVERLOAD_X (STVEXWX,	   "stvexwx")
 BU_ALTIVEC_OVERLOAD_X (STVLX,	   "stvlx")
 BU_ALTIVEC_OVERLOAD_X (STVLXL,	   "stvlxl")
 BU_ALTIVEC_OVERLOAD_X (STVRX,	   "stvrx")
 BU_ALTIVEC_OVERLOAD_X (STVRXL,	   "stvrxl")
+BU_ALTIVC2_OVERLOAD_X (STVFLX,	   "stvflx")
+BU_ALTIVC2_OVERLOAD_X (STVFLXL,	   "stvflxl")
+BU_ALTIVC2_OVERLOAD_X (STVFRX,	   "stvfrx")
+BU_ALTIVC2_OVERLOAD_X (STVFRXL,	   "stvfrxl")
+BU_ALTIVC2_OVERLOAD_X (STVSWX,	   "stvswx")
+BU_ALTIVC2_OVERLOAD_X (STVSWXL,	   "stvswxl")
 BU_ALTIVEC_OVERLOAD_X (VCFSX,	   "vcfsx")
 BU_ALTIVEC_OVERLOAD_X (VCFUX,	   "vcfux")
 BU_ALTIVEC_OVERLOAD_X (VSPLTB,	   "vspltb")
