@@ -3073,6 +3073,7 @@ rs6000_builtin_mask_calculate (void)
 	  | ((TARGET_FRSQRTES)		    ? RS6000_BTM_FRSQRTES  : 0)
 	  | ((TARGET_POPCNTD)		    ? RS6000_BTM_POPCNTD   : 0)
 	  | ((rs6000_cpu == PROCESSOR_CELL) ? RS6000_BTM_CELL      : 0)
+	  | ((TARGET_ISEL) 		    ? RS6000_BTM_ISEL      : 0)
 	  | ((TARGET_P8_VECTOR)		    ? RS6000_BTM_P8_VECTOR : 0)
 	  | ((TARGET_CRYPTO)		    ? RS6000_BTM_CRYPTO	   : 0)
 	  | ((TARGET_HTM)		    ? RS6000_BTM_HTM	   : 0)
@@ -13796,9 +13797,294 @@ rs6000_invalid_builtin (enum rs6000_builtins fncode)
 	   " -mlong-double-128 options", name);
   else if ((fnmask & RS6000_BTM_HARD_FLOAT) != 0)
     error ("Builtin function %s requires the -mhard-float option", name);
+  else if ((fnmask & RS6000_BTM_ISEL) != 0)
+    error ("Builtin function %s requires the -misel option", name);
   else
     error ("Builtin function %s is not supported with the current options",
 	   name);
+}
+
+/* isel builtins are a bit funny, because we want the user to be able to do:
+ *
+ *    char *p, *q, *r;
+ *       int x, y, z;
+ *          unsigned int a, b, c;
+ *             ...
+ *                p = __builtin_iseleq (i, j, q, r);
+ *                   x = __builtin_iseleq (i, j, y, z);
+ *                      a = __builtin_iseleq (i, j, b, c);
+ *
+ *                         and, of course, i and j may be of several different types depending on the
+ *                            condition.
+ *
+ *                               We handle this by having generic builtins that
+ *                                  TARGET_RESOLVE_OVERLOADED_BUILTIN takes and turns into calls to our
+ *                                     specific builtins.  */
+
+/* Macros to help constructing the isel_builtin_desc arrays.
+ *    These closely mirror the macros in rs6000-builtins.def.  */
+/* HACK: Use VOIDmode here as a constant approximation to Pmode and fix
+ *    at runtime.  We can't use Pmode because in biarch its definition is
+ *       not constant.  */
+#define ISEL_Pmode VOIDmode
+#define ISEL_BASE(FLAGS, ARG, RESULT, PRED, CMP, MODE, RMODE)          \
+  { NULL, FLAGS, RS6000_BUILTIN_ISEL_##PRED##CMP##_##ARG##_##RESULT,   \
+      PRED, MODE, RMODE },
+#define ISEL_P_RESULT(FLAGS, ARG, PRED, CMP, MODE, RMODE)              \
+  ISEL_BASE (FLAGS | ISEL_FLAG_SEL_PTR, ARG, PP, PRED,         \
+            CMP, MODE, ISEL_Pmode)
+#define ISEL_S_RESULT(FLAGS, ARG, PRED, CMP, MODE, RMODE)              \
+  ISEL_BASE (FLAGS | ISEL_FLAG_SEL_SIGNED, ARG, SS, PRED,              \
+            CMP, MODE, RMODE)
+#define ISEL_U_RESULT(FLAGS, ARG, PRED, CMP, MODE, RMODE)              \
+  ISEL_BASE (FLAGS | ISEL_FLAG_SEL_UNSIGNED, ARG, UU, PRED,            \
+            CMP, MODE, RMODE)
+
+#define ISEL_EXPAND_ARG(FLAG, ARG, PRED, CMP, MODE, RMODE)             \
+  ISEL_P_RESULT (FLAG, ARG, PRED, CMP, MODE, RMODE)            \
+  ISEL_S_RESULT (FLAG, ARG, PRED, CMP, MODE, RMODE)            \
+  ISEL_U_RESULT (FLAG, ARG, PRED, CMP, MODE, RMODE)
+#define ISEL_PTR_ARG(PRED, CMP, MODE)                          \
+  ISEL_EXPAND_ARG (ISEL_FLAG_CMP_PTR, PP, PRED, CMP, ISEL_Pmode, MODE)
+#define ISEL_SIGNED_ARG(PRED, CMP, MODE)                       \
+  ISEL_EXPAND_ARG (ISEL_FLAG_CMP_SIGNED, SS, PRED, CMP, MODE, MODE)
+#define ISEL_UNSIGNED_ARG(PRED, CMP, MODE)                     \
+  ISEL_EXPAND_ARG (ISEL_FLAG_CMP_UNSIGNED, UU, PRED, CMP, MODE, MODE)
+
+#define ISEL_EQ(CMP, MODE)                                     \
+  ISEL_PTR_ARG (EQ, CMP, MODE)                                 \
+  ISEL_SIGNED_ARG (EQ, CMP, MODE)                              \
+  ISEL_UNSIGNED_ARG (EQ, CMP, MODE)
+#define ISEL_LT(CMP, MODE) ISEL_SIGNED_ARG (LT, CMP, MODE)
+#define ISEL_GT(CMP, MODE) ISEL_SIGNED_ARG (GT, CMP, MODE)
+#define ISEL_LTU(CMP, MODE)                                    \
+  ISEL_PTR_ARG (LTU, CMP, MODE)                                        \
+  ISEL_UNSIGNED_ARG (LTU, CMP, MODE)
+#define ISEL_GTU(CMP, MODE)                                    \
+  ISEL_PTR_ARG (GTU, CMP, MODE)                                        \
+  ISEL_UNSIGNED_ARG (GTU, CMP, MODE)
+
+const struct isel_builtin_desc builtin_iselw[32] = {
+  ISEL_EQ (CMPW, SImode)
+  ISEL_LT (CMPW, SImode)
+  ISEL_GT (CMPW, SImode)
+  ISEL_LTU (CMPW, SImode)
+  ISEL_GTU (CMPW, SImode)
+  { "__builtin_iseleq", 0, RS6000_BUILTIN_ISELEQ, EQ, SImode, SImode },
+  { "__builtin_isellt", 0, RS6000_BUILTIN_ISELLT, LT, SImode, SImode },
+  { "__builtin_iselgt", 0, RS6000_BUILTIN_ISELGT, GT, SImode, SImode },
+  { "__builtin_iselltu", 0, RS6000_BUILTIN_ISELLTU, LTU, SImode, SImode },
+  { "__builtin_iselgtu", 0, RS6000_BUILTIN_ISELGTU, GTU, SImode, SImode }
+};
+
+const struct isel_builtin_desc builtin_iseld[32] = {
+  ISEL_EQ (CMPD, DImode)
+  ISEL_LT (CMPD, DImode)
+  ISEL_GT (CMPD, DImode)
+  ISEL_LTU (CMPD, DImode)
+  ISEL_GTU (CMPD, DImode)
+  { "__builtin_isel64eq", 0, RS6000_BUILTIN_ISELEQD, EQ, DImode, DImode },
+  { "__builtin_isel64lt", 0, RS6000_BUILTIN_ISELLTD, LT, DImode, DImode },
+  { "__builtin_isel64gt", 0, RS6000_BUILTIN_ISELGTD, GT, DImode, DImode },
+  { "__builtin_isel64ltu", 0, RS6000_BUILTIN_ISELLTDU, LTU, DImode, DImode },
+  { "__builtin_isel64gtu", 0, RS6000_BUILTIN_ISELGTDU, GTU, DImode, DImode }
+};
+
+/* Return the mode which DESC uses for comparisons.  */
+
+static enum machine_mode
+isel_cmp_mode (const struct isel_builtin_desc *desc)
+{
+  enum machine_mode mode = (enum machine_mode) desc->cmp_mode;
+
+  return (mode == VOIDmode ? Pmode : mode);
+}
+
+/* Return the mode in which DESC selects arguments.  */
+
+static enum machine_mode
+isel_sel_mode (const struct isel_builtin_desc *desc)
+{
+  enum machine_mode mode = (enum machine_mode) desc->sel_mode;
+
+  return (mode == VOIDmode ? Pmode : mode);
+}
+
+/* Return a tree describing the arguments for DESC according to CMPP:
+ *    true for comparison arguments, false for select arguments.  */
+
+static tree
+isel_argtype (const struct isel_builtin_desc *desc, bool cmpp)
+{
+  switch (desc->arg_flags & (cmpp
+                            ? ISEL_FLAG_CMP_MASK
+                            : ISEL_FLAG_SEL_MASK))
+    {
+    case ISEL_FLAG_CMP_PTR:
+    case ISEL_FLAG_SEL_PTR:
+      return ptr_type_node;
+    case ISEL_FLAG_CMP_SIGNED:
+      return (isel_cmp_mode (desc) == SImode
+             ? integer_type_node
+             : long_integer_type_node);
+    case ISEL_FLAG_SEL_SIGNED:
+      return (isel_sel_mode (desc) == SImode
+             ? integer_type_node
+             : long_integer_type_node);
+    case ISEL_FLAG_CMP_UNSIGNED:
+      return (isel_cmp_mode (desc) == SImode
+             ? unsigned_type_node
+             : long_unsigned_type_node);
+    case ISEL_FLAG_SEL_UNSIGNED:
+    default:
+      return (isel_sel_mode (desc) == SImode
+             ? unsigned_type_node
+             : long_unsigned_type_node);
+    }
+}
+
+/* Return a mnemonic string describing the argument or result of FLAGS
+ *    depending on CMPP.  */
+
+static const char *
+isel_strdesc (int flags, bool cmpp)
+{
+  switch (flags & (cmpp ? ISEL_FLAG_CMP_MASK : ISEL_FLAG_SEL_MASK))
+    {
+    case ISEL_FLAG_CMP_PTR:
+    case ISEL_FLAG_SEL_PTR:
+      return "p";
+    case ISEL_FLAG_CMP_SIGNED:
+    case ISEL_FLAG_SEL_SIGNED:
+      return "s";
+    case ISEL_FLAG_CMP_UNSIGNED:
+    case ISEL_FLAG_SEL_UNSIGNED:
+      return "u";
+    default:
+      gcc_unreachable ();
+    }
+}
+
+/* Initialize N_DESC isel builtins from DESC.  SIGNED_TYPE holds the
+ *    basic type for signed variants of isel, UNSIGNED_TYPE the type for
+ *       unsigned variants.  */
+
+static void
+rs6000_init_isel_builtins (const struct isel_builtin_desc *desc, int n_descs)
+{
+  int i;
+  const char *is64 = (desc == &builtin_iselw[0] ? "32" : "64");
+
+  for (i = 0; i < n_descs; i++)
+    {
+      const struct isel_builtin_desc *d = &desc[i];
+      tree cmptype, seltype, ftype;
+
+      cmptype = isel_argtype (d, true);
+      seltype = isel_argtype (d, false);
+
+      ftype = build_function_type_list (seltype, cmptype, cmptype,
+                                       seltype, seltype, NULL_TREE);
+
+      if (d->name)
+       def_builtin (d->name, ftype, d->code);
+      else
+       {
+         char builtin_name[40];
+
+         sprintf (builtin_name, "__builtin_isel%s%s%s%s%s%s",
+                  is64,
+                  GET_RTX_NAME (d->cmp_code),
+                  GET_MODE_NAME (isel_cmp_mode (d)),
+                  isel_strdesc (d->arg_flags, true),
+                  isel_strdesc (d->arg_flags, false),
+                  GET_MODE_NAME (isel_sel_mode (d)));
+
+         def_builtin (ggc_strdup (builtin_name), ftype, d->code);
+       }
+    }
+}
+
+static rtx
+rs6000_expand_isel_builtin (const struct isel_builtin_desc *desc,
+                           int n_descs, tree exp, rtx target, int fcode)
+{
+  int i;
+
+  for (i = 0; i < n_descs; i++)
+    {
+      const struct isel_builtin_desc *d = &desc[i];
+
+      if (fcode == (int) d->code)
+       {
+         int opidx;
+         unsigned int j;
+         rtx cmp;
+         rtx operands[4];
+         enum insn_code icode;
+         enum machine_mode opmode;
+         enum machine_mode cmpmode = isel_cmp_mode (d);
+         enum machine_mode selmode = isel_sel_mode (d);
+
+         /* Determine underlying isel insn.  */
+         switch (d->cmp_code)
+           {
+           case GTU:
+           case LTU:
+             icode = (Pmode == SImode
+                      ? CODE_FOR_isel_unsigned_si
+                      : CODE_FOR_isel_unsigned_di);
+             break;
+           default:
+             icode = (Pmode == SImode
+                      ? CODE_FOR_isel_signed_si
+                      : CODE_FOR_isel_signed_di);
+             break;
+           }
+
+         for (j = 0; j < ARRAY_SIZE (operands); j++)
+           {
+             tree arg = CALL_EXPR_ARG (exp, j);
+
+             /* If we got invalid arguments, bail out before generating
+ *                 bad rtl.  */
+             if (arg == error_mark_node)
+               return const0_rtx;
+
+             operands[j] = expand_normal (arg);
+
+             /* Validate.  */
+             /* HACK: The isel pattern doesn't actually consume all the
+                operands to the builtin; it only consumes 2 and 3.  The
+                other two will be handed off to a compare
+                insn. Unfortunately, said insn is not named, so we
+                can't directly access its insn_data here.  Fake it by
+                validating operands 0 and 1 with the isel pattern; that
+                should be good enough.  */
+             opidx = (j < 2 ? 2 : j);
+             opmode = (j < 2 ? cmpmode : selmode);
+             if (! (*insn_data[icode].operand[opidx].predicate) (operands[j],
+                                                                 opmode))
+               operands[j] = copy_to_mode_reg (opmode, operands[j]);
+           }
+
+         /* Validate target.  */
+         if (target == NULL_RTX
+             || GET_MODE (target) != selmode
+             || ! (*insn_data[icode].operand[0].predicate) (target, selmode))
+           target = gen_reg_rtx (selmode);
+
+         /* Generate comparison.  */
+         cmp = gen_rtx_fmt_ee ((enum rtx_code)d->cmp_code, cmpmode,
+                               operands[0], operands[1]);
+
+         rs6000_emit_int_cmove (target, cmp, operands[2], operands[3]);
+
+         return target;
+       }
+    }
+
+  return NULL_RTX;
 }
 
 /* Expand an expression EXP that calls a built-in function,
@@ -13954,6 +14240,24 @@ rs6000_expand_builtin (tree exp, rtx target, rtx subtarget ATTRIBUTE_UNUSED,
       break;
     }
 
+  if (TARGET_ISEL)
+    {
+      ret = rs6000_expand_isel_builtin (builtin_iselw,
+                                       ARRAY_SIZE (builtin_iselw),
+                                       exp, target, fcode);
+
+      if (ret != NULL_RTX)
+       return ret;
+    }
+  if (TARGET_ISEL64)
+    {
+      ret = rs6000_expand_isel_builtin (builtin_iseld,
+                                       ARRAY_SIZE (builtin_iseld),
+                                       exp, target, fcode);
+
+      if (ret != NULL_RTX)
+       return ret;
+    }
   if (TARGET_ALTIVEC)
     {
       ret = altivec_expand_builtin (exp, target, &success);
@@ -14212,6 +14516,10 @@ rs6000_init_builtins (void)
     paired_init_builtins ();
   if (TARGET_SPE)
     spe_init_builtins ();
+  if (TARGET_ISEL)
+    rs6000_init_isel_builtins (builtin_iselw, ARRAY_SIZE (builtin_iselw));
+  if (TARGET_ISEL64)
+    rs6000_init_isel_builtins (builtin_iseld, ARRAY_SIZE (builtin_iseld));
   if (TARGET_EXTRA_BUILTINS)
     altivec_init_builtins ();
   if (TARGET_HTM)
@@ -31594,6 +31902,7 @@ static struct rs6000_opt_mask const rs6000_builtin_mask_names[] =
   { "frsqrtes",		 RS6000_BTM_FRSQRTES,	false, false },
   { "popcntd",		 RS6000_BTM_POPCNTD,	false, false },
   { "cell",		 RS6000_BTM_CELL,	false, false },
+  { "isel",              RS6000_BTM_ISEL,       false, false },
   { "power8-vector",	 RS6000_BTM_P8_VECTOR,	false, false },
   { "crypto",		 RS6000_BTM_CRYPTO,	false, false },
   { "htm",		 RS6000_BTM_HTM,	false, false },

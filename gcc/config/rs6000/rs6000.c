@@ -16064,7 +16064,9 @@ expand_block_clear (rtx operands[])
       else if (bytes >= 8 && TARGET_POWERPC64
 	       /* 64-bit loads and stores require word-aligned
 		  displacements.  */
-	       && (align >= 64 || (!STRICT_ALIGNMENT && align >= 32)))
+	       && (align >= 64 || (!STRICT_ALIGNMENT && align >= 32)
+		   || rs6000_cpu == PROCESSOR_PPCE5500
+		   || rs6000_cpu == PROCESSOR_PPCE6500))
 	{
 	  clear_bytes = 8;
 	  mode = DImode;
@@ -16197,7 +16199,9 @@ expand_block_move (rtx operands[])
       else if (bytes >= 8 && TARGET_POWERPC64
 	       /* 64-bit loads and stores require word-aligned
 		  displacements.  */
-	       && (align >= 64 || (!STRICT_ALIGNMENT && align >= 32)))
+	       && (align >= 64 || (!STRICT_ALIGNMENT && align >= 32)
+		   || rs6000_cpu == PROCESSOR_PPCE5500
+		   || rs6000_cpu == PROCESSOR_PPCE6500))
 	{
 	  move_bytes = 8;
 	  mode = DImode;
