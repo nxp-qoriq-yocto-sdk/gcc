@@ -345,6 +345,10 @@ misel=yes
 Target RejectNegative Alias(misel)
 Deprecated option.  Use -misel instead
 
+mcopy-unaligned
+Target Report Var(TARGET_COPY_UNALIGNED)
+Generate unaligned word load and stores to move 3 bytes
+
 mspe
 Target Var(rs6000_spe) Save
 Generate SPE SIMD instructions on E500

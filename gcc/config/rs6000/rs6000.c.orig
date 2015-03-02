@@ -16221,6 +16221,14 @@ expand_block_move (rtx operands[])
 	  mode = SImode;
 	  gen_func.mov = gen_movsi;
 	}
+      else if (TARGET_COPY_UNALIGNED && bytes == 3 && offset > 0)
+	{
+	  /* We generate a single unaligned SI move instead of 2 (HI, QI) */
+	  move_bytes = 3;
+	  mode = SImode;
+	  gen_func.mov = gen_movsi;
+	  offset--;
+	}
       else if (bytes >= 2 && (align >= 16 || !STRICT_ALIGNMENT))
 	{			/* move 2 bytes */
 	  move_bytes = 2;
