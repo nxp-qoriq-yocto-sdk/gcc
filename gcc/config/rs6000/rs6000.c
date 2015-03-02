@@ -1624,6 +1624,9 @@ static const struct attribute_spec rs6000_attribute_table[] =
 #undef TARGET_SET_CURRENT_FUNCTION
 #define TARGET_SET_CURRENT_FUNCTION rs6000_set_current_function
 
+#undef TARGET_CASE_VALUES_THRESHOLD
+#define TARGET_CASE_VALUES_THRESHOLD rs6000_case_values_threshold
+
 #undef TARGET_LEGITIMATE_CONSTANT_P
 #define TARGET_LEGITIMATE_CONSTANT_P rs6000_legitimate_constant_p
 
@@ -32388,6 +32391,21 @@ rs6000_set_current_function (tree fndecl)
 	      = save_target_globals_default_opts ();
 	}
     }
+}
+
+/* Implement `CASE_VALUES_THRESHOLD'.  */
+/* Supply the default for --param case-values-threshold=0  */
+
+static unsigned int
+rs6000_case_values_threshold (void)
+{
+  if (rs6000_cpu == PROCESSOR_PPC8540
+      || rs6000_cpu == PROCESSOR_PPCE500MC
+      || rs6000_cpu == PROCESSOR_PPCE5500
+      || rs6000_cpu == PROCESSOR_PPCE6500)
+    return 8;
+
+  return 4;
 }
 
 
