@@ -51,7 +51,7 @@
 #elif defined (__powerpc__) || defined (__PPC__) || defined (__ppc__) \
       || defined (__POWERPC__) || defined (PPC) || defined (_IBMR2)
 #  if defined (__ALTIVEC__)
-#    if defined (__APPLE__) || defined (__APPLE_ALTIVEC__)
+#    if defined (__APPLE__)
 #      define SIZE 204
 #    else
 #      define SIZE 220

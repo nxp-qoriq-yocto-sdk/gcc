@@ -5913,8 +5913,8 @@ rs6000_data_alignment (tree type, unsigned int align, enum data_align how)
       if (TREE_CODE (type) == ARRAY_TYPE
 	  && TYPE_MODE (TREE_TYPE (type)) == QImode)
 	{
-	  if (align < BITS_PER_WORD)
-	    align = BITS_PER_WORD;
+	  if (align < (TARGET_ALTIVEC ? 128 : BITS_PER_WORD))
+	    align = (TARGET_ALTIVEC ? 128 : BITS_PER_WORD);
 	}
     }
 
