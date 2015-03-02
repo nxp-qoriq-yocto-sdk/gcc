@@ -31745,6 +31745,22 @@ rs6000_dbx_register_number (unsigned int regno)
   return regno;
 }
 
+/* While mapping gcc register numbers to DWARF2 register numbers, 
+ * we digress a bit from the standard ABI.
+ * http://gcc.gnu.org/ml/gcc-patches/2012-11/msg02136.html
+ *
+ * The above change is handled by GDB, but CodeWarrior PowerPC debugger
+ * stricity follows the ABI especially while mapping the vector registers */
+
+unsigned int
+rs6000_fsl_dbx_register_number (unsigned int regno)
+{
+  if (global_options_set.x_rs6000_map_dwarf_vec_reg)
+    return rs6000_dbx_register_number (regno);
+
+  return regno;
+}
+
 /* target hook eh_return_filter_mode */
 static enum machine_mode
 rs6000_eh_return_filter_mode (void)

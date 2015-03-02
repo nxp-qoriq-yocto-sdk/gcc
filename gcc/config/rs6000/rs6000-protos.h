@@ -186,6 +186,7 @@ extern alias_set_type get_TOC_alias_set (void);
 extern void rs6000_emit_prologue (void);
 extern void rs6000_emit_load_toc_table (int);
 extern unsigned int rs6000_dbx_register_number (unsigned int);
+extern unsigned int rs6000_fsl_dbx_register_number (unsigned int);
 extern void rs6000_emit_epilogue (int);
 extern void rs6000_emit_eh_reg_restore (rtx, rtx);
 extern const char * output_isel (rtx *);

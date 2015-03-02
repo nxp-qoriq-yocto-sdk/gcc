@@ -353,6 +353,10 @@ mspe
 Target Var(rs6000_spe) Save
 Generate SPE SIMD instructions on E500
 
+mslow-mfocr
+Target Report Var(TARGET_SLOW_MFOCR)
+Generate slow mfocr instructions
+
 mpaired
 Target Var(rs6000_paired_float) Save
 Generate PPC750CL paired-single instructions

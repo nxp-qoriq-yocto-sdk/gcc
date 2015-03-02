@@ -4093,6 +4093,12 @@ rs6000_option_override_internal (bool global_init_p)
   if (TARGET_LINK_STACK == -1)
     SET_TARGET_LINK_STACK (rs6000_cpu == PROCESSOR_PPC476 && flag_pic);
 
+  /* If the user has not specified -fuse-load-updates nor -fno-use-load-updates
+   * in 64-bit, default to -fuse-load-updates
+   */
+  if (flag_use_load_updates == -1 && TARGET_64BIT)
+    flag_use_load_updates = 1;
+
   return ret;
 }
 

@@ -373,6 +373,10 @@ mdebug=
 Target RejectNegative Joined
 -mdebug=	Enable debug output
 
+mmap_dwarf_vecreg
+Target RejectNegative Var(rs6000_map_dwarf_vec_reg, 0) Save
+Generate expected DWARF Register Number Mapping for Vector Registers 
+
 mabi=altivec
 Target RejectNegative Var(rs6000_altivec_abi) Save
 Use the AltiVec ABI extensions
