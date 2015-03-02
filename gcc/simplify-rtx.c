@@ -5654,6 +5654,7 @@ simplify_immed_subreg (enum machine_mode outermode, rtx op,
       switch (GET_CODE (el))
 	{
 	case CONST_INT:
+        case SYMBOL_REF:
 	  for (i = 0;
 	       i < HOST_BITS_PER_WIDE_INT && i < elem_bitsize;
 	       i += value_bit)
