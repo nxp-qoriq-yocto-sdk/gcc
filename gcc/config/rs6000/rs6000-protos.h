@@ -196,6 +196,8 @@ extern void get_ppc476_thunk_name (char name[32]);
 extern bool rs6000_overloaded_builtin_p (enum rs6000_builtins);
 extern HOST_WIDE_INT rs6000_builtin_mask_calculate (void);
 
+extern bool rs6000_bypass_load_on_store_collision_p (rtx out_insn, rtx in_insn);
+
 /* Declare functions in rs6000-c.c */
 
 extern void rs6000_pragma_longcall (struct cpp_reader *);

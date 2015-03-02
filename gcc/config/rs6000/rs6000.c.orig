@@ -1652,6 +1652,7 @@ static struct rs6000_ptt const processor_target_table[] =
 #undef RS6000_CPU
 };
 
+
 /* Look up a processor name for -mcpu=xxx and -mtune=xxx.  Return -1 if the
    name is invalid.  */
 
@@ -3514,6 +3515,10 @@ rs6000_option_override_internal (bool global_init_p)
   /* Those machines implements a slow mfocr opcode */
   if (rs6000_cpu == PROCESSOR_PPCE5500)
     target_flags &= ~MASK_MFCRF;
+
+  if (rs6000_cpu == PROCESSOR_PPCE5500)
+      target_flags &= ~MASK_MFCRF;
+
 
   /* store_one_arg depends on expand_block_move to handle at least the
      size of reg_parm_stack_space.  */

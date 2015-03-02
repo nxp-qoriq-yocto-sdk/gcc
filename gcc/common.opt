@@ -898,6 +898,10 @@ fbtr-bb-exclusive
 Common Report Var(flag_btr_bb_exclusive) Optimization
 Restrict target load migration not to re-use registers in any basic block
 
+fbypass-load-on-store
+Common Report Var(flag_bypass_load_on_store) Optimization
+Bypass load on store collision
+
 fcall-saved-
 Common Joined RejectNegative Var(common_deferred_options) Defer
 -fcall-saved-<register>	Mark <register> as being preserved across functions
