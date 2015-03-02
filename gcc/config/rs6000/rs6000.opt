@@ -168,6 +168,14 @@ mmultiple
 Target Report Mask(MULTIPLE) Var(rs6000_isa_flags)
 Generate load/store multiple instructions
 
+mmax_block_clear=
+Target RejectNegative Joined UInteger Var(rs6000_max_block_clear) Init(0)
+Maximum size in bytes above which generate string instructions for block clear
+
+mopt-memset
+Target Report Var(TARGET_OPT_MEMSET_STORE) Save
+If optimal emit sequence of stores for memset
+
 mstring
 Target Report Mask(STRING) Var(rs6000_isa_flags)
 Generate string instructions for block moves
