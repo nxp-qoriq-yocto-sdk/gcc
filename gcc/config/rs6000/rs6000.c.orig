@@ -1460,7 +1460,7 @@ static const struct attribute_spec rs6000_attribute_table[] =
 #undef TARGET_RTX_COSTS
 #define TARGET_RTX_COSTS rs6000_rtx_costs
 #undef TARGET_ADDRESS_COST
-#define TARGET_ADDRESS_COST hook_int_rtx_mode_as_bool_0
+#define TARGET_ADDRESS_COST rs6000_address_costs
 
 #undef TARGET_DWARF_REGISTER_SPAN
 #define TARGET_DWARF_REGISTER_SPAN rs6000_dwarf_register_span
@@ -30398,6 +30398,24 @@ rs6000_debug_rtx_costs (rtx x, int code, int outer_code, int opno, int *total,
   debug_rtx (x);
 
   return ret;
+}
+
+/* Address cost calculation.
+ * FIXME: Handle all addressing types */
+
+static int
+rs6000_address_costs (rtx x, enum machine_mode mode ATTRIBUTE_UNUSED,
+		   addr_space_t as ATTRIBUTE_UNUSED,
+		   bool speed ATTRIBUTE_UNUSED)
+{
+  if (toc_relative_expr_p (x, false))
+    {
+      rtx temp = XVECEXP (tocrel_base, 0, 0);
+      if (GET_CODE (temp) != SYMBOL_REF)
+        return 0;
+      return 5;
+    }
+  return 0; 
 }
 
 /* Debug form of ADDRESS_COST that is selected if -mdebug=cost.  */
