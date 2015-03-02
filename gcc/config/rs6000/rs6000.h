@@ -879,7 +879,8 @@ enum data_align { align_abi, align_opt, align_both };
    && (STRICT_ALIGNMENT || !optimize_size)                       \
    && (ALIGN) < BITS_PER_WORD                                    \
    ? BITS_PER_WORD                                               \
-   : (ALIGN))
+   : ((TARGET_ALTIVEC && (TREE_CODE (EXP) == VECTOR_CST)       \
+     && ((ALIGN) < 128)) ? 128 : (ALIGN)))
 
 /* Make arrays of chars word-aligned for the same reasons.  */
 #define DATA_ALIGNMENT(TYPE, ALIGN) \
