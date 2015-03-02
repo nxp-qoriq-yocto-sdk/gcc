@@ -83,6 +83,8 @@
   { "asm_spec_common",		ASM_SPEC_COMMON },			\
   { "asm_spec32",		ASM_SPEC32 },				\
   { "asm_spec64",		ASM_SPEC64 },				\
+  { "link_os_linux_spec32",	LINK_OS_LINUX_SPEC32 },			\
+  { "link_os_linux_spec64",	LINK_OS_LINUX_SPEC64 },
 
 #undef	MULTILIB_DEFAULTS
 #if DEFAULT_ARCH64_P
@@ -169,6 +171,14 @@
 	}						\
     }							\
   while (0)
+
+#ifdef RS6000BI_ARCH_P
+#undef	LINK_OS_DEFAULT_SPEC
+#define LINK_OS_DEFAULT_SPEC "%(link_os_linux)"
+#endif
+
+#define LINK_OS_LINUX_SPEC32 "-m elf32ppclinux"
+#define LINK_OS_LINUX_SPEC64 "-m elf64ppc"
 
 /* Must be at least as big as our pointer type.  */
 #undef	SIZE_TYPE
