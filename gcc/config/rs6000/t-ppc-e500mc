@@ -1,10 +1,15 @@
 # Multilibs for powerpc embedded ELF targets.
+MULTILIB_OPTIONS	= msoft-float \
+			  mlittle \
+			  fleading-underscore \
+			  m64
 
-MULTILIB_OPTIONS	= m32/m64
+MULTILIB_DIRNAMES	= nof \
+			  le \
+			  und \
+			  64
 
-MULTILIB_DIRNAMES	= 32 64
-
-MULTILIB_EXCEPTIONS	= 
+MULTILIB_EXCLUSIONS     = m64/msoft-float m64/mlittle m64/fleading-underscore
 
 MULTILIB_EXTRA_OPTS	= mno-eabi mstrict-align
 
