@@ -85,6 +85,7 @@
 #if TARGET_MACHO
 #include "gstab.h"  /* for N_SLINE */
 #endif
+#include "tree-pass.h"	/* for current_pass */
 
 #ifndef TARGET_NO_PROTOTYPE
 #define TARGET_NO_PROTOTYPE 0
@@ -27006,6 +27007,19 @@ rs6000_adjust_cost (rtx insn, rtx link, rtx dep_insn, int cost)
             break;
           }
 
+      if ((rs6000_cpu == CPU_PPCE500MC
+          || rs6000_cpu_attr == CPU_PPCE500MC64
+          || rs6000_cpu_attr == CPU_PPCE5500
+          || rs6000_cpu_attr == CPU_PPCE6500)
+          && recog_memoized (dep_insn)
+          && (INSN_CODE (dep_insn) >= 0)
+          && (GET_CODE (PATTERN (insn)) == SET)
+          && (GET_CODE (PATTERN (dep_insn)) == SET) 
+          && (get_attr_type (insn) == TYPE_CMP)
+          && (get_attr_type (dep_insn) == TYPE_LOAD)
+          && (GET_CODE (XEXP (PATTERN (dep_insn), 1)) == MEM)
+          && legitimate_indexed_address_p (XEXP((XEXP (PATTERN (dep_insn), 1)),0), false))
+        return cost + 3;
 	/* Fall out to return default cost.  */
       }
       break;
@@ -30415,6 +30429,11 @@ rs6000_address_costs (rtx x, enum machine_mode mode ATTRIBUTE_UNUSED,
         return 0;
       return 5;
     }
+  if (!strcmp (current_pass->name, "loop2_invariant")
+      && (GET_CODE (x) == LO_SUM)
+      && GET_CODE (XEXP (x, 1)) == SYMBOL_REF)
+    return 5;
+
   return 0; 
 }
 

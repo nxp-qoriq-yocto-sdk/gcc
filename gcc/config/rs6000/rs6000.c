@@ -1082,6 +1082,7 @@ static bool is_cracked_insn (rtx);
 static bool is_load_insn (rtx, rtx *);
 static bool is_store_insn (rtx, rtx *);
 static bool set_to_load_agen (rtx,rtx);
+static void rs6000_reorg (void);
 static bool insn_terminates_group_p (rtx , enum group_termination);
 static bool insn_must_be_first_in_group (rtx);
 static bool insn_must_be_last_in_group (rtx);
@@ -1385,6 +1386,8 @@ static const struct attribute_spec rs6000_attribute_table[] =
 #define TARGET_SCHED_REORDER rs6000_sched_reorder
 #undef TARGET_SCHED_REORDER2
 #define TARGET_SCHED_REORDER2 rs6000_sched_reorder2
+#undef TARGET_MACHINE_DEPENDENT_REORG
+#define TARGET_MACHINE_DEPENDENT_REORG rs6000_reorg
 
 #undef TARGET_SCHED_FIRST_CYCLE_MULTIPASS_DFA_LOOKAHEAD
 #define TARGET_SCHED_FIRST_CYCLE_MULTIPASS_DFA_LOOKAHEAD rs6000_use_sched_lookahead
@@ -27875,6 +27878,122 @@ rs6000_sched_reorder2 (FILE *dump, int sched_verbose, rtx *ready,
     }
 
   return cached_can_issue_more;
+}
+
+/* Implement TARGET_MACHINE_DEPENDENT_REORG.  */
+
+void
+remove_redundant_mov (void)
+{
+ basic_block bb;
+ rtx insn0,insn1,insn2,insn3;
+ rtx x,pat,pat0;
+ rtx operands[15];
+ 
+ FOR_EACH_BB_FN (bb, cfun)
+ {
+   FOR_BB_INSNS (bb,insn0)
+   {
+    insn1 = insn0;
+    if(insn1 == 0 )continue;
+    if (LABEL_P (insn1)
+       || BARRIER_P (insn1))insn1 = NEXT_INSN(insn1);
+    if(insn1 == 0)continue;
+
+    if (NEXT_INSN (insn1)
+       && BARRIER_P (NEXT_INSN (insn1)))continue;
+
+    while (NOTE_P (insn1)
+          || (NONJUMP_INSN_P (insn1)
+              && (GET_CODE (PATTERN (insn1)) == USE
+                 || GET_CODE (PATTERN (insn1)) == CLOBBER)))
+    {
+    	insn1 = NEXT_INSN (insn1);
+        if(insn1 == 0)break;
+    }
+    if(insn1 == 0)continue;
+
+    if (LABEL_P (insn1)
+      || BARRIER_P (insn1))continue;
+
+    pat = PATTERN (insn1);
+    x = pat0 = pat;
+    if (GET_CODE (x) != SET)continue;
+    x = XEXP (pat,0);
+    operands[0] = x;
+    if (! TARGET_POWERPC64)
+    {
+     if (! gpc_reg_operand (x, SImode))continue;
+    }
+    else
+    {
+     if (! gpc_reg_operand (x, DImode))continue;
+    } 
+    x = XEXP (XEXP (pat, 1), 0);
+    operands[1] = x;
+    insn2 = insn1;
+    do { insn2 = NEXT_INSN (insn2);
+       if (insn2 == 0) break; }
+    while (NOTE_P (insn2)
+         || (NONJUMP_INSN_P (insn2)
+             && (GET_CODE (PATTERN (insn2)) == USE
+                 || GET_CODE (PATTERN (insn2)) == CLOBBER)));
+    if(insn2 == 0)continue;
+    if (LABEL_P (insn2)
+        || BARRIER_P (insn2))continue;
+    pat = PATTERN (insn2);
+    x = pat;
+    if (GET_CODE (x) != SET)continue;
+    x = XEXP (pat, 0);
+    operands[3] = x;
+    if (! TARGET_POWERPC64)
+    {
+       if (! gpc_reg_operand (x, SImode))continue;
+    }
+    else
+    {
+       if (! gpc_reg_operand (x, DImode))continue;
+    }
+    x = XEXP (pat, 1);
+    if (!rtx_equal_p (operands[0], x))continue;
+    insn3 = insn2;
+    do { insn3 = NEXT_INSN (insn3);
+       if (insn3 == 0) break; }
+    while (NOTE_P (insn3)
+         || (NONJUMP_INSN_P (insn3)
+             && (GET_CODE (PATTERN (insn3)) == USE
+                 || GET_CODE (PATTERN (insn3)) == CLOBBER)));
+    if(insn3 == 0)continue;
+    if (LABEL_P (insn3)
+        || BARRIER_P (insn3))continue;
+    pat = PATTERN (insn3);
+    x = pat;
+    if (GET_CODE (x) != RETURN)continue;
+    if ((REGNO(operands[3]) == 3))
+    {
+      rtx ret_reg;
+      int insn_code_number;
+      
+      ret_reg = copy_rtx (operands[3]);
+      XEXP(pat0,0) = ret_reg;
+      insn_code_number = recog_memoized (insn1);
+      cleanup_subreg_operands (insn1);
+      if (! constrain_operands_cached (1))
+      {
+       /*operands does ot match to their constraints.so revert changes to insn*/
+        XEXP(pat0,0) = operands[0];
+      }
+      else
+        delete_insn (insn2);
+    }
+   }
+  }
+}
+
+static void
+rs6000_reorg (void)
+{
+  remove_redundant_mov ();
 }
 
 /* Return whether the presence of INSN causes a dispatch group termination
