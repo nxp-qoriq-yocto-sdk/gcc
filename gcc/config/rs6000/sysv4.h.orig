@@ -951,7 +951,8 @@ ncrtn.o%s"
 /* This target uses the sysv4.opt file.  */
 #define TARGET_USES_SYSV4_OPT 1
 
-#undef DBX_REGISTER_NUMBER
+/* Use standard DWARF numbering for DWARF debugging information.  */
+#define DBX_REGISTER_NUMBER(REGNO) rs6000_fsl_dbx_register_number (REGNO)
 
 /* Link -lasan early on the command line.  For -static-libasan, don't link
    it for -shared link, the executable should be compiled with -static-libasan

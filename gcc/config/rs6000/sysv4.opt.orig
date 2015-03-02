@@ -116,10 +116,6 @@ msim
 Target RejectNegative
 Link with libsim.a, libc.a and sim-crt0.o
 
-maeabi
-Target RejectNegative
-Link with libaeabi.a, crtaeabi0.o and crtaeabi9.o
-
 mads
 Target RejectNegative
 Link with libads.a, libc.a and crt0.o

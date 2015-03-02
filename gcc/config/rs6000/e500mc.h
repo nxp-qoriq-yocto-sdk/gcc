@@ -84,7 +84,22 @@
   { "asm_spec32",		ASM_SPEC32 },				\
   { "asm_spec64",		ASM_SPEC64 },				\
   { "link_os_linux_spec32",	LINK_OS_LINUX_SPEC32 },			\
-  { "link_os_linux_spec64",	LINK_OS_LINUX_SPEC64 },
+  { "link_os_linux_spec64",	LINK_OS_LINUX_SPEC64 },                 \
+  { "startfile_aeabi",          STARTFILE_AEABI_SPEC },                 \
+  { "lib_aeabi",                LIB_AEABI_SPEC },                       \
+  { "endfile_aeabi",            ENDFILE_AEABI_SPEC },
+
+#define STARTFILE_AEABI_SPEC ""
+#define LIB_AEABI_SPEC ""
+#define ENDFILE_AEABI_SPEC ""
+
+/* This is the case of e5500 and e6500 targets */
+#undef STARTFILE_AEABI_SPEC
+#undef LIB_AEABI_SPEC
+#undef ENDFILE_AEABI_SPEC
+#define STARTFILE_AEABI_SPEC "%{m32:-m elf32ppc} %{m64:-m elf64ppc} %{!m32:%{!m64:-m elf32ppc}} ecrti.o%s crtaeabi0.o%s crtbegin.o%s"
+#define LIB_AEABI_SPEC "--start-group -laeabi -lc --end-group"
+#define ENDFILE_AEABI_SPEC "crtend.o%s crtaeabi9.o%s ecrtn.o%s"
 
 #undef	MULTILIB_DEFAULTS
 #if DEFAULT_ARCH64_P

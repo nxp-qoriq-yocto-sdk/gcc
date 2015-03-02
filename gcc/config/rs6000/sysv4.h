@@ -632,6 +632,7 @@ ENDIAN_SELECT(" -mbig", " -mlittle", DEFAULT_ASM_ENDIAN)
   mcall-linux  : %(startfile_linux)       ; \
   mcall-netbsd : %(startfile_netbsd)      ; \
   mcall-openbsd: %(startfile_openbsd)     ; \
+  maeabi       : %(startfile_aeabi)       ; \
                : %(startfile_default)     }"
 
 #define	STARTFILE_DEFAULT_SPEC "ecrti.o%s crtbegin.o%s"
@@ -646,6 +647,7 @@ ENDIAN_SELECT(" -mbig", " -mlittle", DEFAULT_ASM_ENDIAN)
   mcall-linux  : %(lib_linux)       ; \
   mcall-netbsd : %(lib_netbsd)      ; \
   mcall-openbsd: %(lib_openbsd)     ; \
+  maeabi       : %(lib_aeabi)       ; \
                : %(lib_default)     }"
 
 #define LIB_DEFAULT_SPEC "-lc"
@@ -660,6 +662,7 @@ ENDIAN_SELECT(" -mbig", " -mlittle", DEFAULT_ASM_ENDIAN)
   mcall-linux  : %(endfile_linux)       ; \
   mcall-netbsd : %(endfile_netbsd)      ; \
   mcall-openbsd: %(endfile_openbsd)     ; \
+  maeabi       : %(endfile_aeabi)       ; \
                : %(crtsavres_default) %(endfile_default)     }"
 
 #define CRTSAVRES_DEFAULT_SPEC ""
