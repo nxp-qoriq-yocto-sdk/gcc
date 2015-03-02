@@ -1076,6 +1076,10 @@ fdisable-
 Common Joined RejectNegative Var(common_deferred_options) Defer
 -fdisable-[tree|rtl|ipa]-<pass>=range1+range2 disables an optimization pass
 
+fdisable-c11-self-mod-expr
+Common RejectNegative Report Var(flag_disable_c11_self_mod_expr) Init(0) Optimization
+Disable c11 restriction on self modifying expression of gimplifier
+
 fenable-
 Common Joined RejectNegative Var(common_deferred_options) Defer
 -fenable-[tree|rtl|ipa]-<pass>=range1+range2 enables an optimization pass
