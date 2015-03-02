@@ -45,10 +45,10 @@
 #include <regression/common_type.hpp>
 
 #ifndef ITERATIONS
-#define ITERATIONS 5000
+#define ITERATIONS 2
 #endif
 #ifndef KEYS
-#define KEYS 10000
+#define KEYS 5
 #endif
 int
 main(int argc, char* a_p_argv[])
