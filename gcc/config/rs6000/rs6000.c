@@ -17434,12 +17434,11 @@ rs6000_secondary_reload_inner (rtx reg, rtx mem, rtx scratch, bool store_p)
 
       if (legitimate_indirect_address_p (addr, false)	/* reg */
 	  || legitimate_indexed_address_p (addr, false)	/* reg+reg */
+	  || GET_CODE (addr) == PRE_MODIFY		/* VSX pre-modify */
 	  || (GET_CODE (addr) == AND			/* Altivec memory */
-	      && rclass == ALTIVEC_REGS
 	      && GET_CODE (XEXP (addr, 1)) == CONST_INT
 	      && INTVAL (XEXP (addr, 1)) == -16
-	      && (legitimate_indirect_address_p (XEXP (addr, 0), false)
-		  || legitimate_indexed_address_p (XEXP (addr, 0), false))))
+	      && VECTOR_MEM_ALTIVEC_P (mode)))
 	;
 
       else if (GET_CODE (addr) == PLUS)
