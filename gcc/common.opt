@@ -1483,6 +1483,10 @@ fivopts
 Common Report Var(flag_ivopts) Init(1) Optimization
 Optimize induction variables on trees
 
+fuse-seq-load-indexes
+Common Report Var(flag_use_seq_load_indexes) Init(1) Optimization
+Supress sequential load update and indexed loads with two indexed loads which exploits pipeline
+
 fjump-tables
 Common Var(flag_jump_tables) Init(1) Optimization
 Use jump tables for sufficiently large switch statements

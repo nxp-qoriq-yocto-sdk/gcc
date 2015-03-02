@@ -997,6 +997,10 @@ fdebug-types-section
 Common Report Var(flag_debug_types_section) Init(0)
 Output .debug_types section when using DWARF v4 debuginfo.
 
+fdebug-unwind-tables
+Common Report Var(flag_debug_unwind_tables) Init(0)
+Generate unwind tables in .debug_frame also, when exception unwind tables enabled
+
 ; Nonzero for -fdefer-pop: don't pop args after each function call
 ; instead save them up to pop many calls' args with one insns.
 fdefer-pop

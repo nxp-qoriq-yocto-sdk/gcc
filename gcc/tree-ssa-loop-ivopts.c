@@ -5692,6 +5692,69 @@ iv_ca_dump (struct ivopts_data *data, FILE *file, struct iv_ca *ivs)
       }
   fprintf (file, "\n\n");
 }
+/* Find out if the given iv use pattern for a given candidate which would
+ * generate two sequential load indexes so that they can be pipelined and
+ * result in performance improvement over one load update and load index.
+ * Below are the heuristics.
+ * 1)IV candidate base object should be same as that of IV uses for which
+ *   two loads would be generated.
+ * 2)base values of two uses should be different and the first base should
+ *   be just an object name.
+ * 3)both the uses should be consecutive.
+ *   returns true if above hueristics are matched otherwise return false.
+ */
+static bool
+iv_use_pipeline_possibility (struct ivopts_data *data,struct iv_ca *ivs,
+                             struct iv_cand *cand)
+{
+  unsigned i,count = 0;
+  struct iv_use *use;
+  int base_check = true;
+  tree cand_base_obj,base_obj;
+  tree cur_base = NULL,prev_base = NULL;
+  cand_base_obj = cand->iv->base_object;
+
+  if (cand_base_obj)
+   STRIP_NOPS (cand_base_obj);
+  for (i = 0; i < ivs->upto; i++)
+    {
+      use = iv_use (data, i);
+      base_obj = use->iv->base_object;
+      cur_base = use->iv->base;
+      if (cur_base)
+        {
+          STRIP_NOPS (cur_base);
+        }
+      if (base_obj)
+        {
+          STRIP_NOPS (base_obj);
+        }
+      if (count == 2)
+       break;
+      if (prev_base && count == 1)
+	{
+         if (TREE_CODE (prev_base) == SSA_NAME &&
+             TREE_CODE (cur_base) != SSA_NAME)
+          base_check=true;
+         else
+          base_check = false;
+        }
+      else
+       base_check = true;
+	
+      if ((cand_base_obj == base_obj) &&
+           (use->type == USE_ADDRESS) && base_check)
+       count++;
+      else
+       count = 0;
+ 
+       prev_base = cur_base;
+    }
+     if (count == 2)
+      return true;
+     else
+      return false;
+}
 
 /* Try changing candidate in IVS to CAND for each use.  Return cost of the
    new set, and store differences in DELTA.  Number of induction variables
@@ -5726,6 +5789,10 @@ iv_ca_extend (struct ivopts_data *data, struct iv_ca *ivs,
 	continue;
 
       if (!min_ncand && !cheaper_cost_pair (new_cp, old_cp))
+        continue;
+
+      if (flag_use_seq_load_indexes &&
+          iv_use_pipeline_possibility (data,ivs,cand))
         continue;
 
       *delta = iv_ca_delta_add (use, old_cp, new_cp, *delta);
