@@ -2280,6 +2280,14 @@ Use the gold linker instead of the default linker
 fuse-linker-plugin
 Common Undocumented Var(flag_use_linker_plugin)
 
+; Initialize flag_use_load_updates to -1
+; That way, it gets set to 1 on -fuse-load-updates and to 0 on -fno-use-load-updates
+; when these options are explicitly used by the user. This helps us default it to ON
+; on 64-bit and OFF in 32-bit
+fuse-load-updates
+Common Report Var(flag_use_load_updates) Init(-1) Optimization
+Support generation of {load, store}-with-update instructions past non-unit increments
+
 ; Positive if we should track variables, negative if we should run
 ; the var-tracking pass only to discard debug annotations, zero if
 ; we're not to run it.  When flag_var_tracking == 2 (AUTODETECT_VALUE) it
