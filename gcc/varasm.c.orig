@@ -3881,7 +3881,7 @@ output_constant_pool_1 (struct constant_descriptor_rtx *desc,
   targetm.asm_out.internal_label (asm_out_file, "LC", desc->labelno);
 
   /* Output the data.  */
-  output_constant_pool_2 (desc->mode, x, desc->align);
+  output_constant_pool_2 (desc->mode, x, align);
 
   /* Make sure all constants in SECTION_MERGE and not SECTION_STRINGS
      sections have proper size.  */
